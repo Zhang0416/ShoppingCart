@@ -1,0 +1,165 @@
+[
+  {
+    "id": "p001",
+    "name": "iPhone 15 Pro",
+    "description": "A17 Pro芯片，钛金属设计，超视网膜XDR显示屏",
+    "price": 8999.0,
+    "suggest": 8999.0,
+    "category": "电子产品",
+    "stock": 49,
+    "unit": "台",
+    "images": [
+      "./screens/assets/image/demo/iphone15pro.JPEG"
+    ],
+    "specifications": {
+      "颜色": "['深空黑', '银色', '金色']",
+      "存储": "['128GB', '256GB', '512GB', '1TB']"
+    },
+    "rating": 4.8,
+    "sales_count": 1200,
+    "is_featured": true,
+    "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p002",
+    "name": "MacBook Air M2",
+    "description": "13.6英寸Liquid视网膜显示屏，M2芯片",
+    "price": 8499.0,
+    "suggest": 8999.0,
+    "category": "电子产品",
+    "stock": 30,
+    "unit": "台",
+    "images": [
+      "./screens/assets/image/demo/macbookairm2.png"
+    ],
+    "specifications": {
+      "内存": "['512GB', '1TB']"
+    },
+    "rating": 4.7,
+    "sales_count": 850,
+    "is_featured": true,
+    "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p003",
+    "name": "男士休闲衬衫",
+    "description": "纯棉材质，舒适透气，多色可选",
+    "price": 299.0,
+    "suggest": 299.0,
+    "category": "服装服饰",
+    "stock": 99,
+    "unit": "件",
+    "images": [
+      "./screens/assets/image/demo/tshirtman.JPEG"
+    ],
+    "specifications": {
+      "尺码": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "颜色": [
+        "白色",
+        "蓝色",
+        "灰色",
+        "黑色"
+      ]
+    },
+    "rating": 4.5,
+    "sales_count": 3200,
+    "is_featured": false,
+    "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p004",
+    "name": "Java编程思想",
+    "description": "Java编程经典书籍，第5版",
+    "price": 89.0,
+    "suggest": 99.0,
+    "category": "图书音像",
+    "stock": 196,
+    "unit": "本",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {},
+    "rating": 4.9,
+    "sales_count": 5600,
+    "is_featured": false,
+    "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p005",
+    "name": "巧克力礼盒",
+    "description": "比利时进口巧克力，精美包装",
+    "price": 199.0,
+    "suggest": 199.0,
+    "category": "食品饮料",
+    "stock": 148,
+    "unit": "盒",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {},
+    "rating": 4.6,
+    "sales_count": 2100,
+    "is_featured": false,
+    "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p006",
+    "name": "智能手表",
+    "description": "心率监测，GPS定位，50米防水",
+    "price": 1299.0,
+    "suggest": 1299.0,
+    "category": "电子产品",
+    "stock": 80,
+    "unit": "个",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {},
+    "rating": 4.4,
+    "sales_count": 900,
+    "is_featured": false,
+    "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p007",
+    "name": "运动鞋",
+    "description": "透气网面，减震鞋底，跑步健身",
+    "price": 399.0,
+    "suggest": 399.0,
+    "category": "服装服饰",
+    "stock": 118,
+    "unit": "双",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {},
+    "rating": 4.7,
+    "sales_count": 1800,
+    "is_featured": false,
+    "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p008",
+    "name": "无线耳机",
+    "description": "降噪功能，30小时续航，蓝牙5.2",
+    "price": 599.0,
+    "suggest": 599.0,
+    "category": "电子产品",
+    "stock": 198,
+    "unit": "副",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {},
+    "rating": 4.3,
+    "sales_count": 3500,
+    "is_featured": false,
+    "created_at": "2026-01-04T22:20:54.270793"
+  }
+]

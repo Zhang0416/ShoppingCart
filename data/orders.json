@@ -1,0 +1,64 @@
+[
+  {
+    "order_id": "37c2dea6f276a16294fd726c8242fe9759f25c93",
+    "user_name": "demo",
+    "user_phone": "13800138000",
+    "items": [
+      {
+        "product_id": "p002",
+        "product_name": "MacBook Air M2",
+        "price": 8499.0,
+        "quantity": 1,
+        "image": "./assets/image/demo/macbookairm2.png",
+        "specifications": {}
+      }
+    ],
+    "subtotal": 8499.0,
+    "discount": 0,
+    "total": 8499.0,
+    "address": "cucc~15266547789~天津市南开区和平中路",
+    "payment_method": "wechat",
+    "status": "pending",
+    "created_at": "2026-01-04 16:30:59",
+    "updated_at": ""
+  },
+  {
+    "order_id": "73d66a4094e69aaa12960a9039787d2da5126771",
+    "user_name": "demo",
+    "user_phone": "13800138000",
+    "items": [
+      {
+        "product_id": "p001",
+        "product_name": "iPhone 15 Pro",
+        "price": 8999.0,
+        "quantity": 1,
+        "image": "./assets/image/demo/iphone15pro.jpeg",
+        "specifications": {}
+      },
+      {
+        "product_id": "p006",
+        "product_name": "智能手表",
+        "price": 1299.0,
+        "quantity": 2,
+        "image": "https://via.placeholder.com/300x300/1abc9c/ffffff?text=手表",
+        "specifications": {}
+      },
+      {
+        "product_id": "p005",
+        "product_name": "巧克力礼盒",
+        "price": 199.0,
+        "quantity": 2,
+        "image": "https://via.placeholder.com/300x300/f39c12/ffffff?text=巧克力",
+        "specifications": {}
+      }
+    ],
+    "subtotal": 11995.0,
+    "discount": 0,
+    "total": 11995.0,
+    "address": "ddd~13865321245~北京市石景山区环湖中路",
+    "payment_method": "cash",
+    "status": "pending",
+    "created_at": "2026-01-04 17:32:25",
+    "updated_at": ""
+  }
+]
