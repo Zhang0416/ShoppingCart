@@ -62,15 +62,15 @@ class CartScreen(Screen):
         )
 
         # 结算按钮
-        checkout_btn = MDRaisedButton(
+        self.checkout_btn = MDRaisedButton(
             text="去结算",
             size_hint=(0.4, 1),
             md_bg_color=(0.2, 0.8, 0.4, 1)
         )
-        checkout_btn.bind(on_release=self.checkout)
+        self.checkout_btn.bind(on_release=self.checkout)
 
         bottom_layout.add_widget(self.total_label)
-        bottom_layout.add_widget(checkout_btn)
+        bottom_layout.add_widget(self.checkout_btn)
 
         # 空购物车提示
         self.empty_label = MDLabel(
@@ -103,8 +103,15 @@ class CartScreen(Screen):
         # 检查购物车是否为空
         if app.cart.item_count == 0:
             self.empty_label.opacity = 1
-            self.total_label.text = " 购物车为空\n 快去选购吧"
+            self.total_label.text = " 购物车为空 "
+            self.checkout_btn.text = "去选购"
+            self.checkout_btn.unbind(on_release=self.checkout)
+            self.checkout_btn.bind(on_release=self.go_back)
             return
+        else:
+            self.checkout_btn.text = "去结算"
+            self.checkout_btn.bind(on_release=self.checkout)
+            self.checkout_btn.unbind(on_release=self.go_back)
 
         self.empty_label.opacity = 0
 
@@ -121,11 +128,13 @@ class CartScreen(Screen):
             self.cart_layout.add_widget(cart_item)
 
         # 更新总价
-        self.total_label.text = f"数量：{app.cart.item_count}， 总价: ¥{app.cart.total:.1f}"
+        self.total_label.text = f"数量：{app.cart.item_count}\n总价: ¥{app.cart.total:.1f}"
 
     def refresh(self):
         """刷新"""
-        MDSnackbar(MDLabel(text="购物车已刷新", text_color=(0.2, 0.8, 0.2, 1))).open()
+        MDSnackbar(
+            MDLabel(text="购物车已刷新", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))
+        ).open()
 
     def go_back(self, *args):
         """返回商品页"""
@@ -139,9 +148,8 @@ class CartScreen(Screen):
         app = App.get_running_app()
 
         if app.cart.item_count == 0:
-            from kivymd.uix.snackbar import MDSnackbar
             MDSnackbar(
-                MDLabel(text="购物车为空", text_color=(0.9, 0.2, 0.2, 1))
+                MDLabel(text="购物车为空", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
             ).open()
             return
 

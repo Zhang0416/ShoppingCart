@@ -13,6 +13,7 @@ from kivymd.uix.list import MDList
 from kivymd.uix.scrollview import MDScrollView
 from kivy.metrics import dp, sp
 
+import re
 
 class ProductDetailDialog(ModalView):
     """商品详情对话框"""
@@ -46,7 +47,7 @@ class ProductDetailDialog(ModalView):
 
         title_label = MDLabel(
             text="商品详情",
-            font_style="H5",
+            font_style="H6",
             bold=True,
             halign="center",
             size_hint_x=0.8
@@ -92,7 +93,7 @@ class ProductDetailDialog(ModalView):
         # 商品名称
         name_label = MDLabel(
             text=self.product_data.name,
-            font_style="H6",
+            font_style="Subtitle1",
             bold=True,
             size_hint_y=None,
             height=dp(40),
@@ -102,11 +103,11 @@ class ProductDetailDialog(ModalView):
         # 价格
         price_label = MDLabel(
             text=f"价格: ￥{self.product_data.price:.1f}",
-            font_style="H6",
+            font_style="Subtitle2",
             theme_text_color="Error",
             bold=True,
             size_hint_y=None,
-            height=dp(50)
+            height=dp(40)
         )
 
         # 标签行
@@ -114,14 +115,14 @@ class ProductDetailDialog(ModalView):
             orientation="horizontal",
             spacing=dp(10),
             size_hint_y=None,
-            height=dp(50)
+            height=dp(40)
         )
 
         category_chip = MDChip()
-        category_chip.add_widget(MDChipText(text=self.product_data.category))
+        category_chip.add_widget(MDChipText(text=self.product_data.category, font_style="Overline"))
 
         stock_chip = MDChip()
-        stock_chip.add_widget(MDChipText(text=f"库存: {self.product_data.stock}", text_color=(0, 1, 1, 1)))
+        stock_chip.add_widget(MDChipText(text=f"库存: {self.product_data.stock}", font_style="Overline"))
 
         chip_row.add_widget(category_chip)
         chip_row.add_widget(stock_chip)
@@ -136,12 +137,13 @@ class ProductDetailDialog(ModalView):
             halign="left"
         )
 
-        # 描述内容
+        # 描述内容'
+        temp = re.split(r'[,:;，：；。]', str(self.product_data.description))  # []表示字符集合
         desc_label = MDLabel(
-            text=self.product_data.description,
-            font_style="Body1",
+            text="\n".join(temp),  # self.product_data.description,
+            font_style="Body2",
             size_hint_y=None,
-            height=dp(50),
+            height=dp(30*len(temp)),
             halign="left"
         )
 
@@ -156,9 +158,9 @@ class ProductDetailDialog(ModalView):
             spec_info_string = self.product_data.specifications
         spec_label = MDLabel(
             text=spec_info_string,
-            font_style="Body2",
-            size_hint_y=None,
-            height=dp(50),
+            font_style="Caption",
+            size_hint_y=None,  # 禁用高度的 size_hin
+            text_size=(None, None),  # 宽度高度自动
             halign="left"
         )
 
@@ -194,9 +196,6 @@ class ProductDetailDialog(ModalView):
         )
 
         # 组装所有组件
-        # content_box.add_widget(detail_image)
-        # content_box.add_widget(scroll_view)
-
         main_box.add_widget(title_bar)
         main_box.add_widget(scroll_view)
         main_box.add_widget(cart_button)
@@ -225,7 +224,7 @@ class ProductCard(MDCard, CommonElevationBehavior):
         self.orientation = 'vertical'
         self.size_hint = (None, None)
         self.width = dp(200)
-        self.height = dp(300)
+        self.height = dp(240)
         self.padding = dp(10)
         self.spacing = dp(5)
         self.radius = [dp(15)]
@@ -277,7 +276,7 @@ class ProductCard(MDCard, CommonElevationBehavior):
             icon_color=(0, 1, 0, 1),
             icon_size=sp(12),
             text="加入购物车",
-            size_hint=(1, None),
+            size_hint=(0.9, None),
             height=dp(40),
             md_bg_color=(0.2, 0.6, 0.86, 1),
             pos_hint={"center_x": 0.5, "center_y": 0.6}

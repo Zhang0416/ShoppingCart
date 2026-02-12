@@ -107,6 +107,14 @@ class ShoppingCart:
         self.items.clear()
         self.coupon = None
 
+    def set_coupon(self, val):
+        if self.coupon is None:
+            self.coupon = {"value": val}
+        elif isinstance(self.coupon, dict) and "value" in self.coupon.keys():
+            self.coupon["value"] = val
+        else:
+            self.coupon = {"value": val}
+
     @property
     def item_count(self):
         return sum(item.quantity for item in self.items.values())
@@ -118,8 +126,9 @@ class ShoppingCart:
     @property
     def discount(self):
         if self.coupon:
-            # 简化折扣计算
-            return min(self.coupon.get('value', 0), self.subtotal * 0.3)
+            # 简化折扣计算, 最低5折
+            # return min(self.coupon.get('value', 0), self.subtotal * 0.5)
+            return self.coupon.get('value', 0)
         return 0
 
     @property

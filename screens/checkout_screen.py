@@ -8,7 +8,7 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.snackbar import MDSnackbar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.list import MDList, IconLeftWidget, IconRightWidget, ThreeLineAvatarIconListItem
+from kivymd.uix.list import MDList, ThreeLineListItem
 from kivymd.uix.scrollview import MDScrollView
 from kivy.metrics import dp
 
@@ -83,11 +83,36 @@ class CheckoutScreen(Screen):
         )
 
         # 优惠
-        discount_label = MDLabel(
-            text="优惠: -¥0.00",
-            theme_text_color="Secondary",
-            font_style="Subtitle2"
+        discount_layout = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(50),  # 尺寸用 dp
+            spacing=dp(20)
         )
+        discount_label = MDLabel(
+            text="优惠:",
+            theme_text_color="Secondary",
+            font_style="Subtitle2",
+            size_hint=(0.2, 1)
+        )
+        discount_set_btn = MDRaisedButton(
+            text="设置",
+            size_hint=(0.2, 0.8),
+            on_release=lambda x: self.discount_set_function()
+        )
+        self.discount_input_label = MDTextField(
+            hint_text="输入优惠金额",
+            # helper_text="输入优惠金额",
+            mode="rectangle",
+            input_filter="int",  # 可选：只允许输入数字
+            size_hint=(0.6, None),
+            height=dp(50)
+        )
+        self.discount_input_label.font_name_hint_text = CHINESE_FONT_NAME
+        # self.discount_input_label.font_name_helper_text = CHINESE_FONT_NAME
+        discount_layout.add_widget(discount_label)
+        discount_layout.add_widget(self.discount_input_label)
+        discount_layout.add_widget(discount_set_btn)
 
         # 总计
         self.total_label = MDLabel(
@@ -98,14 +123,14 @@ class CheckoutScreen(Screen):
 
         order_card.add_widget(self.subtotal_label)
         # order_card.add_widget(shipping_label)
-        order_card.add_widget(discount_label)
+        order_card.add_widget(discount_layout)
         order_card.add_widget(self.total_label)
 
         # 收货地址卡片
         address_card = MDCard(
             orientation='horizontal',
             size_hint=(1, None),
-            height=dp(120),
+            height=dp(80),
             padding=dp(20),
             spacing=dp(10),
             elevation=dp(4),
@@ -121,13 +146,14 @@ class CheckoutScreen(Screen):
         self.address_label = MDLabel(
             text="选择收件人信息",
             theme_text_color="Hint",
-            font_style="Subtitle1"
+            font_style="Subtitle2"
         )
 
         self.change_address_btn = MDRaisedButton(
             text="点击选择",
-            size_hint=(None, None),
-            size=("200sp", "40sp"),
+            size_hint=(None, 1),
+            # size=("200sp", "40sp"),
+            md_bg_color=(0.6, 0.4, 0.6, 1),
             on_release=self.open_address_menu
         )
 
@@ -215,6 +241,21 @@ class CheckoutScreen(Screen):
         self.subtotal_label.text = f"商品总价: ¥{app.cart.subtotal:.1f}"
         self.total_label.text = f"应付总额: ¥{app.cart.total:.1f}"
 
+    def discount_set_function(self):
+        """更新订单信息"""
+        from kivy.app import App
+        app = App.get_running_app()
+
+        if len(self.discount_input_label.text) > 0 and self.discount_input_label.text.isdigit():
+            val = float(self.discount_input_label.text)
+            if val >= app.cart.subtotal * 0.3:
+                MDSnackbar(
+                    MDLabel(text=f"优惠不能低于3折", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
+                ).open()
+                return
+            app.cart.set_coupon(val)
+            self.total_label.text = f"应付总额: ¥{app.cart.total:.1f}"
+
     def open_address_menu(self, *args):
         from kivy.app import App
         app = App.get_running_app()
@@ -276,7 +317,8 @@ class CheckoutScreen(Screen):
             product = app.db.get_product(item.product_id)
             if not product or product.stock < item.quantity:
                 MDSnackbar(
-                    MDLabel(text=f"商品 {item.product_name} 库存不足", text_color=(0.9, 0.2, 0.2, 1))
+                    MDLabel(text=f"商品 {item.product_name} 库存不足", theme_text_color="Custom",
+                            text_color=(0.9, 0.2, 0.2, 1))
                 ).open()
                 return
 
@@ -311,11 +353,15 @@ class CheckoutScreen(Screen):
         # 显示订单确认
         self.confirm_order_dialog = MDDialog(
             title="订单创建成功",
-            text=f"订单号：{order.order_id}\n"
-                 f"支付金额：¥{order.total:.1f}\n"
-                 f"收货地址：{order.address}\n"
-                 f"支付方式：{order.payment_method}\n"
-                 f"订单状态：已完成",
+            type="custom",
+            size_hint_x=None,
+            width=dp(320),
+            content_cls=MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(10),
+                size_hint_y=None,
+                height=dp(120)
+            ),
             buttons=[
                 MDRaisedButton(
                     text="查看订单",
@@ -327,6 +373,15 @@ class CheckoutScreen(Screen):
                 )
             ]
         )
+        order_info = MDLabel(
+            text=f"订单号：{order.order_id[:20]}\n"
+                 f"支付金额：¥{order.total:.1f}\n"
+                 f"收货地址：{order.address}\n"
+                 f"支付方式：{order.payment_method}\n"
+                 f"订单状态：已完成",
+            font_style='Caption',
+        )
+        self.confirm_order_dialog.content_cls.add_widget(order_info)
         self.confirm_order_dialog.open()
 
     def view_order(self, order):

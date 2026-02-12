@@ -3,10 +3,12 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton, MDIconButton, MDFlatButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.list import (MDList, OneLineListItem, OneLineIconListItem, ThreeLineListItem,
                              ThreeLineAvatarIconListItem, IconLeftWidget, IconRightWidget)
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.card import MDCard
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.chip import MDChip
 from kivymd.uix.snackbar import MDSnackbar
@@ -44,7 +46,7 @@ class OrdersScreen(Screen):
 
         # 顶部工具栏
         toolbar = MDTopAppBar(
-            title="订单/库存 详情",
+            title="订单管理",
             elevation=dp(4),
             md_bg_color=(0.2, 0.6, 0.86, 1),
             left_action_items=[["arrow-left", lambda x: self.go_back()]],
@@ -67,34 +69,48 @@ class OrdersScreen(Screen):
             text="我的订单",
             on_release=self.show_my_orders
         )
-        my_orders_item.add_widget(IconLeftWidget(icon="cart"))
+        my_orders_item.add_widget(
+            IconLeftWidget(icon="cart", theme_text_color="Custom", text_color=(0.2, 0.2, 0.8, 1))
+        )
 
         # 历史订单
         history_orders_item = OneLineIconListItem(
             text="历史订单",
             on_release=self.show_history_orders
         )
-        history_orders_item.add_widget(IconLeftWidget(icon="history"))
-
-        # 库存管理区
-        inventory_section = OneLineListItem(
-            text="库存管理",
-            theme_text_color="Primary",
-            font_style="Headline6"
+        history_orders_item.add_widget(
+            IconLeftWidget(icon="history", theme_text_color="Custom", text_color=(1, 0.5, 0, 1))
         )
 
-        # 我的库存
-        my_inventory_item = OneLineIconListItem(
-            text="我的库存",
-            on_release=self.show_my_inventory
+        # 统计，按照年份、季度或月份统计
+        statis_orders_item = OneLineIconListItem(
+            text="统计订单",
+            on_release=self.show_statis_select_year
         )
-        my_inventory_item.add_widget(IconLeftWidget(icon="storefront"))
+        statis_orders_item.add_widget(
+            IconLeftWidget(icon="camcorder", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))
+        )
 
-        self.menu_list.add_widget(order_section)
+        # # 库存管理区
+        # inventory_section = OneLineListItem(
+        #     text="库存管理",
+        #     theme_text_color="Primary",
+        #     font_style="Headline6"
+        # )
+        #
+        # # 我的库存
+        # my_inventory_item = OneLineIconListItem(
+        #     text="我的库存",
+        #     on_release=self.show_my_inventory
+        # )
+        # my_inventory_item.add_widget(IconLeftWidget(icon="storefront"))
+
+        # self.menu_list.add_widget(order_section)
         self.menu_list.add_widget(my_orders_item)
         self.menu_list.add_widget(history_orders_item)
-        self.menu_list.add_widget(inventory_section)
-        self.menu_list.add_widget(my_inventory_item)
+        self.menu_list.add_widget(statis_orders_item)
+        # self.menu_list.add_widget(inventory_section)
+        # self.menu_list.add_widget(my_inventory_item)
 
         scroll_view.add_widget(self.menu_list)
 
@@ -135,49 +151,51 @@ class OrdersScreen(Screen):
             dialog.open()
             return
 
+        # 最上方显示搜索订单框
+        search_layout = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(70),
+            padding=dp(10),
+            spacing=dp(10)
+        )
+
+        self.search_input = MDTextField(
+            hint_text="搜索订单...",
+            mode="rectangle",
+            size_hint=(0.8, 1)
+        )
+        self.search_input.font_name_hint_text = CHINESE_FONT_NAME
+        self.search_input.font_name = CHINESE_FONT_NAME
+
+        search_btn = MDRaisedButton(
+            text="搜索",
+            size_hint=(0.2, 1),
+            md_bg_color=(0.1, 0.5, 0.2, 0.8)
+        )
+        search_btn.bind(on_release=lambda x, o=orders: self.search_orders(o))
+
+        search_layout.add_widget(self.search_input)
+        search_layout.add_widget(search_btn)
+
         # 创建订单列表对话框
         scroll_view = MDScrollView()
-        order_list = MDList()
+        self.my_orders_list = MDList()
 
-        for order in orders[:10][::-1]:  # 只显示最近10个订单
+        for order in orders[::-1]:  # 最新的下单 显示在最前
             time_str = datetime.fromisoformat(order.created_at).strftime("%Y-%m-%d %H:%M")
             item = ThreeLineAvatarIconListItem(
                 text=f"订单号：{order.order_id[:20]}",
-                secondary_text=f"收件人信息：{order.address}",  # | 状态：{self.get_status_text(order.status)}",
+                secondary_text=f"收货人：{order.address}",  # | 状态：{self.get_status_text(order.status)}",
                 tertiary_text=f"金额：¥{order.total:.1f} | 时间：{time_str}",
                 _txt_left_pad=dp(10),  # 删除icon空白
-                font_style='Subtitle2',
+                font_style='Caption',
                 secondary_font_style='Overline',
                 tertiary_font_style='Overline'
             )
             item.bind(on_release=lambda x, o=order: self.show_order_detail(o))
-
-            # # 添加操作按钮
-            # extra_layout = MDBoxLayout(
-            #     orientation='horizontal',
-            #     adaptive_height=True,
-            #     size_hint=(None, None),
-            #     size=(sp(120), sp(40)),
-            #     spacing=0
-            # )
-            #
-            # delete_btn = MDIconButton(
-            #     icon="delete",
-            #     size_hint=(None, None),
-            #     size=(sp(40), sp(40)),
-            #     theme_text_color="Error",
-            #     pos_hint={'center_x': 0.0}
-            # )
-            # delete_btn.bind(on_release=lambda x, o=order: self.delete_my_order(o))
-            #
-            # extra_layout.add_widget(delete_btn)
-            # right_ = IconRightWidget(icon="", )
-            # right_.add_widget(extra_layout)
-            # item.add_widget(right_)
-
-            order_list.add_widget(item)
-
-        scroll_view.add_widget(order_list)
+            self.my_orders_list.add_widget(item)
+        scroll_view.add_widget(self.my_orders_list)
 
         self.my_order_dialog = MDDialog(
             title="我的订单",
@@ -216,9 +234,33 @@ class OrdersScreen(Screen):
             )
             filter_layout.add_widget(chip)
 
-        # dialog.content_cls.add_widget(filter_layout)
+        # self.my_order_dialog.content_cls.add_widget(filter_layout)
+        self.my_order_dialog.content_cls.add_widget(search_layout)
         self.my_order_dialog.content_cls.add_widget(scroll_view)
         self.my_order_dialog.open()
+
+    def search_orders(self, orders):
+        self.my_orders_list.clear_widgets()
+        search_text = self.search_input.text.strip().lower()
+
+        filtered_orders = [
+            p for p in orders
+            if search_text in str(p.address).lower() or search_text in str(p.order_id[:20]).lower()
+        ]
+
+        for order in filtered_orders[::-1]:  # 最新的下单 显示在最前
+            time_str = datetime.fromisoformat(order.created_at).strftime("%Y-%m-%d %H:%M")
+            item = ThreeLineAvatarIconListItem(
+                text=f"订单号：{order.order_id[:20]}",
+                secondary_text=f"收货人：{order.address}",  # | 状态：{self.get_status_text(order.status)}",
+                tertiary_text=f"金额：¥{order.total:.1f} | 时间：{time_str}",
+                _txt_left_pad=dp(10),  # 删除icon空白
+                font_style='Caption',
+                secondary_font_style='Overline',
+                tertiary_font_style='Overline'
+            )
+            item.bind(on_release=lambda x, o=order: self.show_order_detail(o))
+            self.my_orders_list.add_widget(item)  # 重新填充列表
 
     def show_history_orders(self, *args):
         """显示历史订单"""
@@ -226,7 +268,7 @@ class OrdersScreen(Screen):
         app = App.get_running_app()
 
         if not app.current_user:
-            MDSnackbar(MDLabel(text="请先登录", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请先登录", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         # 获取所有订单
@@ -270,8 +312,8 @@ class OrdersScreen(Screen):
                     on_release=lambda x: self.history_orders_dialog.dismiss()
                 ),
                 MDRaisedButton(
-                    text="查看详情",
-                    on_release=lambda x: self.show_all_orders_detail()
+                    text="全部订单",
+                    on_release=lambda x: self.show_all_orders()
                 )
             ]
         )
@@ -281,7 +323,7 @@ class OrdersScreen(Screen):
         stats_card = MDCard(
             orientation='vertical',
             size_hint=(1, None),
-            height=dp(150),
+            height=dp(120),
             padding=dp(20),
             spacing=dp(10),
             elevation=dp(2),
@@ -291,22 +333,25 @@ class OrdersScreen(Screen):
         stats_card.add_widget(MDLabel(
             text="订单统计",
             theme_text_color="Primary",
-            font_style="Headline6"
+            font_style="Subtitle2"
         ))
 
         stats_card.add_widget(MDLabel(
             text=f"总订单数：{total_orders}",
-            theme_text_color="Secondary"
+            theme_text_color="Secondary",
+            font_style="Subtitle2"
         ))
 
         stats_card.add_widget(MDLabel(
             text=f"总金额：¥{total_amount:.1f}",
-            theme_text_color="Secondary"
+            theme_text_color="Secondary",
+            font_style="Subtitle2"
         ))
 
         stats_card.add_widget(MDLabel(
             text=f"已完成订单：{completed_orders}",
-            theme_text_color="Secondary"
+            theme_text_color="Secondary",
+            font_style="Subtitle2"
         ))
 
         # 最近订单
@@ -328,9 +373,9 @@ class OrdersScreen(Screen):
             time_str = datetime.fromisoformat(order.created_at).strftime("%m-%d %H:%M")
             item = ThreeLineListItem(
                 text=f"订单号：{order.order_id[:20]}",
-                secondary_text=f"收件人信息：{order.address}",  # | {self.get_status_text(order.status)}"
+                secondary_text=f"收货人：{order.address}",  # | {self.get_status_text(order.status)}"
                 tertiary_text=f"金额：¥{order.total:.1f} | 时间：{time_str}",
-                font_style='Subtitle2',
+                font_style='Caption',
                 secondary_font_style='Overline',
                 tertiary_font_style='Overline'
             )
@@ -344,7 +389,201 @@ class OrdersScreen(Screen):
         self.history_orders_dialog.content_cls.add_widget(scroll_view)
         self.history_orders_dialog.open()
 
-    def show_all_orders_detail(self):
+    def show_statis_select_year(self, *args):
+
+        # 创建对话框
+        self.statis_select_year_dialog = MDDialog(
+            title="统计订单",
+            type="custom",
+            size_hint_x=None,
+            width=dp(360),
+            content_cls=MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(10),
+                size_hint_y=None,
+                height=dp(200)
+            ),
+            buttons=[
+                MDFlatButton(
+                    text="关闭",
+                    on_release=lambda x: self.statis_select_year_dialog.dismiss()
+                ),
+                MDRaisedButton(
+                    text="查看详情",
+                    on_release=lambda x: self.show_statis_orders()
+                )
+            ]
+        )
+        self.statis_select_year_dialog.ids.title.font_name = CHINESE_FONT_NAME
+
+        # 选择年份
+        select_year_layout = MDCard(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(60),
+            padding=dp(10),
+            spacing=dp(20),
+            elevation=dp(2),
+            radius=[dp(10)]
+        )
+        self.select_year_label = MDLabel(
+            text="2026",
+            theme_text_color="Hint",
+            font_style="Subtitle2",
+            height=dp(40),
+        )
+        self.select_year_btn = MDRaisedButton(
+            text="选择年份",
+            size_hint=(None, None),
+            size=(sp(100), sp(10)),
+            md_bg_color=(0.6, 0.4, 0.6, 1),
+            on_release=self.open_year_menu
+        )
+        select_year_layout.add_widget(self.select_year_label)
+        select_year_layout.add_widget(self.select_year_btn)
+
+        self.statis_select_year_dialog.add_widget(select_year_layout)
+        self.statis_select_year_dialog.open()
+
+    def open_year_menu(self, *args):
+        # 年份选择按钮
+        self.year_menu_for_statis = MDDropdownMenu(
+            caller=self.select_year_btn,
+            items=[
+                {
+                    "text": str(cat),
+                    "viewclass": "OneLineListItem",
+                    "height": dp(50),
+                    "on_release": lambda x=cat: self.select_year_for_statis(x),
+                } for cat in range(2026, 2050)
+            ],
+            width_mult=1,
+            # max_height=300,
+            # position="center",
+            hor_growth="left",  # 水平向右扩展（避免左侧裁剪）
+            md_bg_color=(0.2, 0.8, 0.2, 1)
+        )
+        self.year_menu_for_statis.width = dp(100)
+        self.year_menu_for_statis.open()
+
+    def select_year_for_statis(self, year):
+        """为商品选择分类"""
+        self.select_year_label.text = str(year)
+        if self.year_menu_for_statis:
+            self.year_menu_for_statis.dismiss()
+
+    def show_statis_orders(self, *args):
+
+        """获取所有订单"""
+        from kivy.app import App
+        app = App.get_running_app()
+
+        if not app.current_user:
+            MDSnackbar(MDLabel(text="请先登录", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
+            return
+
+        all_orders = app.order_manager.get_all_orders()
+        sorted_orders = sorted(all_orders, key=lambda x: x.created_at, reverse=True)
+        monthly_stats = {month: {"count": 0, "amount": 0.0, "id_list": []} for month in range(1, 13)}
+        for order in sorted_orders:
+            time_format = datetime.fromisoformat(order.created_at)  # .strftime("%m-%d %H:%M")
+
+            # 检查年份
+            if str(time_format.year) == self.select_year_label.text:
+                # 更新统计
+                monthly_stats[time_format.month]["count"] += 1
+                monthly_stats[time_format.month]["amount"] += order.total
+                monthly_stats[time_format.month]["id_list"].append(order.order_id)
+
+        # 创建对话框
+        self.statis_orders_dialog = MDDialog(
+            title="统计订单",
+            type="custom",
+            size_hint_x=None,
+            width=dp(360),
+            content_cls=MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(10),
+                size_hint_y=None,
+                height=dp(500)
+            ),
+            buttons=[
+                MDFlatButton(
+                    text="关闭",
+                    on_release=lambda x: self.statis_orders_dialog.dismiss()
+                ),
+            ]
+        )
+
+        scroll_view = MDScrollView()
+        month_list = MDList()
+        for month in range(1, 13):
+            if monthly_stats[month]['count'] <= 0:
+                continue
+            item = ThreeLineListItem(
+                text=f"{month}月",
+                secondary_text=f"订单数：{monthly_stats[month]['count']:>4}",
+                tertiary_text=f"订单金额：{monthly_stats[month]['amount']:.1f}",
+                font_style='Subtitle2',
+                secondary_font_style='Subtitle2',
+                tertiary_font_style='Subtitle2'
+            )
+            item.bind(
+                on_release=lambda x, m=month, id=monthly_stats[month]['id_list']: self.show_month_order_detail(m, id))
+            month_list.add_widget(item)
+        scroll_view.add_widget(month_list)
+
+        self.statis_orders_dialog.content_cls.add_widget(scroll_view)
+        self.statis_orders_dialog.open()
+
+    def show_month_order_detail(self, month, id_list):
+        from kivy.app import App
+        app = App.get_running_app()
+
+        all_orders = app.order_manager.get_all_orders()
+        month_orders = [o for o in all_orders if o.order_id in id_list]
+
+        # 创建对话框
+        month_orders_dialog = MDDialog(
+            title=f"{month}月订单明细",
+            type="custom",
+            size_hint_x=None,
+            width=dp(360),
+            content_cls=MDBoxLayout(
+                orientation='vertical',
+                spacing=dp(10),
+                size_hint_y=None,
+                height=dp(500)
+            ),
+            buttons=[
+                MDFlatButton(
+                    text="关闭",
+                    on_release=lambda x: month_orders_dialog.dismiss()
+                ),
+            ]
+        )
+        month_orders_dialog.ids.title.font_name = CHINESE_FONT_NAME
+
+        scroll_view = MDScrollView()
+        recent_list = MDList()
+        for order in month_orders[::-1]:  # 倒序，日期较大的排在前面
+            time_str = datetime.fromisoformat(order.created_at).strftime("%m-%d %H:%M")
+            item = ThreeLineListItem(
+                text=f"订单号：{order.order_id[:20]}",
+                secondary_text=f"收货人：{order.address}",  # | {self.get_status_text(order.status)}"
+                tertiary_text=f"金额：¥{order.total:.1f} | 时间：{time_str}",
+                font_style='Caption',
+                secondary_font_style='Overline',
+                tertiary_font_style='Overline'
+            )
+            item.bind(on_release=lambda x, o=order: self.show_order_detail(o, has_delete=False))
+            recent_list.add_widget(item)
+
+        scroll_view.add_widget(recent_list)
+        month_orders_dialog.content_cls.add_widget(scroll_view)
+        month_orders_dialog.open()
+
+    def show_all_orders(self):
         """显示所有订单详情"""
         self.history_orders_dialog.dismiss()
 
@@ -360,9 +599,9 @@ class OrdersScreen(Screen):
             time_str = datetime.fromisoformat(order.created_at).strftime("%Y-%m-%d %H:%M")
             item = ThreeLineListItem(
                 text=f"订单号：{order.order_id[:20]}",
-                secondary_text=f"收件人信息：{order.address}",  # | 状态：{self.get_status_text(order.status)}"
+                secondary_text=f"收货人：{order.address}",  # | 状态：{self.get_status_text(order.status)}"
                 tertiary_text=f"用户：{order.user_name} | 金额：¥{order.total:.1f} | 时间：{time_str}",
-                font_style='Subtitle2',
+                font_style='Caption',
                 secondary_font_style='Overline',
                 tertiary_font_style='Overline'
             )
@@ -402,52 +641,94 @@ class OrdersScreen(Screen):
         scroll_view = MDScrollView()
         recent_list = MDList()
 
+        # 订单信息
+        infor_label = MDLabel(
+            text="----------- 订单信息 -----------",
+            theme_text_color="Primary",
+            font_style="Subtitle1",
+            size_hint_y=None,
+            height=dp(20)
+        )
+        recent_list.add_widget(infor_label)
+
         tmp = order.address.split('~')
         info_text = [
             f"收货人: {'~'.join(tmp[:-1])}",
             f"收货地址: {tmp[-1]}",  # 支付方式: {order.payment_method}
-            f"下单账号: {order.user_name}",
-            f"下单时间: {datetime.fromisoformat(order.created_at).strftime('%Y-%m-%d %H:%M:%S')}",
-            f"订单号: {order.order_id[:20]}",
-            f"订单状态: {self.get_status_text(order.status)}",
-            ""
+            # f"下单账号: {order.user_name}",
+            f"下单时间: {order.user_name}~{datetime.fromisoformat(order.created_at).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"订单号: {order.order_id[:20]}~{self.get_status_text(order.status)}",
+            # f"订单状态: {self.get_status_text(order.status)}",
         ]
         for item in info_text:
             item_label = MDLabel(
                 text=item,
                 theme_text_color="Secondary",
                 size_hint_y=None,
-                font_style="Subtitle2",
+                font_style="Caption",
                 height=dp(20)
             )
             recent_list.add_widget(item_label)
 
         # 商品列表
         items_label = MDLabel(
-            text="商品列表:",
+            text="----------- 商品列表 -----------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
-            height=dp(20)
+            height=dp(20),
+            # halign='center'
         )
         recent_list.add_widget(items_label)
 
         # 添加商品项
         counts = 0
+        table_items = [["\n      名称", "\n 数量", "\n    价格"]]
         for item in order.items:
             counts += item['quantity']
-            item_text = f"• {item['product_name']} × {item['quantity']} = ¥{float(item['price']) * item['quantity']:.1f}"
-            item_label = MDLabel(
-                text=item_text,
+            # item_text = f"• {item['product_name']:<16} × {item['quantity']:>3} = ¥{float(item['price']) * item['quantity']:5.1f}"
+            # item_label = MDLabel(
+            #     text=item_text,
+            #     theme_text_color="Secondary",
+            #     size_hint_y=None,
+            #     font_style="Caption",
+            #     height=dp(20),
+            #     # halign='center'
+            # )
+            # recent_list.add_widget(item_label)
+            ss = float(item['price']) * item['quantity']
+            table_items.append([f"• {item['product_name']}", f" × {item['quantity']}", f" = ¥{ss}"])
+
+        table_layout = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(15 * (counts + 1)),
+            padding=dp(10),
+            spacing=dp(0)
+        )
+        size_x_arr = [0.5, 0.2, 0.3]
+        for i, cols in enumerate(list(zip(*table_items))):  # zip命令将二维list的每列打包成list
+            item_text = MDLabel(
+                text="\n".join(cols),
                 theme_text_color="Secondary",
-                size_hint_y=None,
-                font_style="Subtitle2",
-                height=dp(20)
+                size_hint=(size_x_arr[i], 1),
+                font_style="Caption",
             )
-            recent_list.add_widget(item_label)
+            table_layout.add_widget(item_text)
+
+        recent_list.add_widget(table_layout)
 
         # 金额汇总
-        summary_text = f"""\n\n\n
+        summary_label = MDLabel(
+            text="\n\n----------- 金额汇总 -----------",
+            theme_text_color="Primary",
+            font_style="Subtitle1",
+            size_hint_y=None,
+            height=dp(20)
+        )
+        recent_list.add_widget(summary_label)
+
+        summary_text = f"""\n\n\n\n\n
         商品总数: {int(counts)}
         商品小计: ¥{order.subtotal:.1f}
         优惠金额: ¥{order.discount:.1f}
@@ -457,9 +738,9 @@ class OrdersScreen(Screen):
         summary_label = MDLabel(
             text=summary_text,
             theme_text_color="Error",
-            font_style="Headline5",
+            font_style="Subtitle2",
             size_hint_y=None,
-            height=dp(60)
+            height=dp(40)
         )
         recent_list.add_widget(summary_label)
         # dialog.content_cls.add_widget(summary_label)
@@ -478,7 +759,7 @@ class OrdersScreen(Screen):
                     orientation='vertical',
                     spacing=dp(10),
                     size_hint_y=None,
-                    height=dp(500)
+                    height=dp(600)
                 ),
                 buttons=[
                     MDRaisedButton(
@@ -501,7 +782,7 @@ class OrdersScreen(Screen):
                     orientation='vertical',
                     spacing=dp(10),
                     size_hint_y=None,
-                    height=dp(500)
+                    height=dp(600)
                 ),
                 buttons=[
                     MDFlatButton(
@@ -519,11 +800,13 @@ class OrdersScreen(Screen):
         self.confirm_delete_order_dialog = MDDialog(
             title="确认删除",
             type="custom",
+            size_hint_x=None,
+            width=dp(330),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
                 size_hint_y=None,
-                height=dp(200)
+                height=dp(60)
             ),
             buttons=[
                 MDFlatButton(text="取消",
@@ -538,9 +821,12 @@ class OrdersScreen(Screen):
         self.confirm_delete_order_dialog.content_cls.add_widget(
             ThreeLineAvatarIconListItem(
                 text=f"订单号：{order.order_id[:20]}",
-                secondary_text=f"收件人信息：{order.address}",
+                secondary_text=f"收货人信息：{order.address}",
                 tertiary_text=f"金额：¥{order.total:.1f} | 时间：{time_str}",
-                _txt_left_pad=dp(10)  # 删除icon空白
+                _txt_left_pad=dp(10),  # 删除icon空白
+                font_style='Caption',
+                secondary_font_style='Overline',
+                tertiary_font_style='Overline'
             ))
 
         self.confirm_delete_order_dialog.open()
@@ -584,21 +870,16 @@ class OrdersScreen(Screen):
         """导出订单数据"""
         # self.all_orders_detail_dailog.dismiss()
 
-        JSONToCSVApp().export_json_to_csv(orders)
+        # JSONToCSVApp().export_json_to_csv(orders)
 
-        MDSnackbar(MDLabel(text="订单数据导出功能开发中", text_color=(0.2, 0.6, 0.86, 1))).open()
+        MDSnackbar(
+            MDLabel(text="订单数据导出功能开发中", theme_text_color="Custom", text_color=(0.2, 0.6, 0.86, 1))).open()
 
     def refresh_orders(self):
         """刷新订单"""
         # self.load_orders()
 
-        MDSnackbar(MDLabel(text="订单已刷新", text_color=(0.2, 0.8, 0.2, 1))).open()
-
-    def show_my_inventory(self, *args):
-        """显示我的订单"""
-        from kivy.app import App
-        app = App.get_running_app()
-        app.show_inventory()
+        MDSnackbar(MDLabel(text="订单已刷新", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
 
     def go_back(self):
         """返回主页"""

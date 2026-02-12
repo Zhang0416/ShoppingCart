@@ -34,7 +34,7 @@ class ShoppingCartApp(MDApp):
 
     def build(self):
         """构建应用"""
-        self.theme_cls.theme_style = "Light"
+        self.theme_cls.theme_style = "Light"  # 浅色主题
         self.theme_cls.primary_palette = "Blue"
         self.theme_cls.accent_palette = "Orange"
 
@@ -103,6 +103,9 @@ class ShoppingCartApp(MDApp):
             # 更新购物车界面
             cart_screen = self.screen_manager.get_screen("cart")
             cart_screen.update_cart()
+            # 更新商品界面 购物车徽章
+            product_screen = self.screen_manager.get_screen("products")
+            product_screen.update_badge_color_text(self.cart.item_count)
 
             # 显示成功消息
             MDSnackbar(

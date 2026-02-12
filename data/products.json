@@ -6,7 +6,7 @@
     "price": 8999.0,
     "suggest": 8999.0,
     "category": "电子产品",
-    "stock": 49,
+    "stock": 46,
     "unit": "台",
     "images": [
       "./screens/assets/image/demo/iphone15pro.JPEG"
@@ -27,7 +27,7 @@
     "price": 8499.0,
     "suggest": 8999.0,
     "category": "电子产品",
-    "stock": 30,
+    "stock": 28,
     "unit": "台",
     "images": [
       "./screens/assets/image/demo/macbookairm2.png"
@@ -47,7 +47,7 @@
     "price": 299.0,
     "suggest": 299.0,
     "category": "服装服饰",
-    "stock": 99,
+    "stock": 96,
     "unit": "件",
     "images": [
       "./screens/assets/image/demo/tshirtman.JPEG"
@@ -79,7 +79,7 @@
     "price": 89.0,
     "suggest": 99.0,
     "category": "图书音像",
-    "stock": 196,
+    "stock": 190,
     "unit": "本",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -97,7 +97,7 @@
     "price": 199.0,
     "suggest": 199.0,
     "category": "食品饮料",
-    "stock": 148,
+    "stock": 144,
     "unit": "盒",
     "images": [
       "./screens/assets/image/no_pic1.jpg"
@@ -111,16 +111,18 @@
   {
     "id": "p006",
     "name": "智能手表",
-    "description": "心率监测，GPS定位，50米防水",
+    "description": "心率监测，血氧饱和度，计步、睡眠，GPS定位，50米防水",
     "price": 1299.0,
     "suggest": 1299.0,
     "category": "电子产品",
-    "stock": 80,
+    "stock": 79,
     "unit": "个",
     "images": [
       "./screens/assets/image/no_pic1.jpg"
     ],
-    "specifications": {},
+    "specifications": {
+      "内存": "32GB,64GB"
+    },
     "rating": 4.4,
     "sales_count": 900,
     "is_featured": false,
@@ -133,7 +135,7 @@
     "price": 399.0,
     "suggest": 399.0,
     "category": "服装服饰",
-    "stock": 118,
+    "stock": 115,
     "unit": "双",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -151,7 +153,7 @@
     "price": 599.0,
     "suggest": 599.0,
     "category": "电子产品",
-    "stock": 198,
+    "stock": 197,
     "unit": "副",
     "images": [
       "./screens/assets/image/no_pic.jpg"

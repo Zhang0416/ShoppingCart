@@ -91,21 +91,27 @@ class ProfileScreen(Screen):
             text="修改密码",
             on_release=self.change_password
         )
-        change_pwd_item.add_widget(IconLeftWidget(icon="lock"))
+        change_pwd_item.add_widget(
+            IconLeftWidget(icon="lock", theme_text_color="Custom", text_color=(0.2, 0.2, 0.8, 1))
+        )
 
         # 修改信息
         change_info_item = OneLineIconListItem(
             text="修改个人信息",
             on_release=self.change_user_info
         )
-        change_info_item.add_widget(IconLeftWidget(icon="account-edit"))
+        change_info_item.add_widget(
+            IconLeftWidget(icon="account-edit", theme_text_color="Custom", text_color=(1, 0.5, 0, 1))
+        )
 
         # 收货地址
         address_item = OneLineIconListItem(
             text="收货地址管理",
             on_release=self.show_addresses
         )
-        address_item.add_widget(IconLeftWidget(icon="map-marker"))
+        address_item.add_widget(
+            IconLeftWidget(icon="map-marker", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))
+        )
 
         # 应用设置区
         settings_section = OneLineListItem(
@@ -181,6 +187,7 @@ class ProfileScreen(Screen):
         self.menu_list.add_widget(change_pwd_item)
         self.menu_list.add_widget(change_info_item)
         self.menu_list.add_widget(address_item)
+        self.menu_list.add_widget(logout_item)
         self.menu_list.add_widget(settings_section)
         self.menu_list.add_widget(notification_item)
         self.menu_list.add_widget(theme_item)
@@ -189,7 +196,6 @@ class ProfileScreen(Screen):
         self.menu_list.add_widget(about_item)
         self.menu_list.add_widget(help_item)
         self.menu_list.add_widget(feedback_item)
-        self.menu_list.add_widget(logout_item)
 
         scroll_view.add_widget(self.menu_list)
 
@@ -248,9 +254,9 @@ class ProfileScreen(Screen):
             title="修改密码",
             type="custom",
             content_cls=MDBoxLayout(orientation='vertical',
-                                    spacing=10,
+                                    spacing=dp(10),
                                     size_hint_y=None,
-                                    height=200),
+                                    height=dp(200)),
             buttons=[
                 MDFlatButton(text="取消",
                              on_release=lambda x: dialog.dismiss()),
@@ -279,7 +285,7 @@ class ProfileScreen(Screen):
         # 查找用户
         user = self.search_current_user()
         if not user:
-            MDSnackbar(MDLabel(text="用户不存在", text_color=(0.6, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="用户不存在", theme_text_color="Custom", text_color=(0.6, 0.2, 0.2, 1))).open()
             return
 
         old_pwd = self.password_input['old'].text
@@ -287,19 +293,20 @@ class ProfileScreen(Screen):
         confirm_pwd = self.password_input['confirm'].text
 
         if not old_pwd or not new_pwd or not confirm_pwd:
-            MDSnackbar(MDLabel(text="请填写所有字段", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请填写所有字段", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         if old_pwd != user['password']:
-            MDSnackbar(MDLabel(text="旧密码输入错误", text_color=(0.6, 0.2, 0.5, 1))).open()
+            MDSnackbar(MDLabel(text="旧密码输入错误", theme_text_color="Custom", text_color=(0.6, 0.2, 0.5, 1))).open()
             return
 
         if new_pwd != confirm_pwd:
-            MDSnackbar(MDLabel(text="两次输入的新密码不一致", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(
+                MDLabel(text="两次输入的新密码不一致", ttheme_text_color="Custom", ext_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         if len(new_pwd) < 6:
-            MDSnackbar(MDLabel(text="密码长度至少6位", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="密码长度至少6位", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         dialog.dismiss()
@@ -321,7 +328,7 @@ class ProfileScreen(Screen):
         app = App.get_running_app()
 
         if not app.current_user:
-            MDSnackbar(MDLabel(text="请先登录", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请先登录", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         dialog = MDDialog(
@@ -370,15 +377,17 @@ class ProfileScreen(Screen):
         email = self.user_info_input['email'].text.strip()
 
         if not name:
-            MDSnackbar(MDLabel(text="用户名不能为空", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="用户名不能为空", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         if not phone or len(phone) != 11 or not re.match(r'^1[3-9]\d{9}$', phone):
-            MDSnackbar(MDLabel(text="手机号格式不正确", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(
+                MDLabel(text="手机号格式不正确", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         if "@" not in email:
-            MDSnackbar(MDLabel(text="请正确填写邮箱名称与后缀", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请正确填写邮箱名称与后缀", theme_text_color="Custom",
+                               text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         from kivy.app import App
@@ -440,7 +449,10 @@ class ProfileScreen(Screen):
                 text=f"收货人：{addr['name']}",
                 secondary_text=f"电话：{addr['phone']}",
                 tertiary_text=f"地址：{addr['address']}",
-                _txt_left_pad=dp(20)  # 删除icon空白
+                _txt_left_pad=dp(5),  # 删除icon空白
+                font_style='Caption',
+                secondary_font_style='Overline',
+                tertiary_font_style='Overline'
             )
 
             # 添加操作按钮
@@ -448,36 +460,37 @@ class ProfileScreen(Screen):
                 orientation='horizontal',
                 adaptive_height=True,
                 size_hint=(None, None),
-                size=(sp(120), sp(40)),
+                # size=(sp(120), sp(40)),
                 spacing=0
             )
 
-            edit_btn = MDIconButton(
+            edit_btn = IconRightWidget(
                 icon="pencil",
-                size_hint=(None, None),
-                size=(sp(40), sp(40)),
+                size_hint=(1, None),
+                # size=(sp(40), sp(40)),
                 theme_text_color="Hint",
-                # md_bg_color=(0.1, 0.6, 0.3, 0.6)
             )
             edit_btn.bind(on_release=lambda x, idx=i: self.edit_address(idx))
 
-            delete_btn = MDIconButton(
+            delete_btn = IconRightWidget(
                 icon="delete",
-                size_hint=(None, None),
-                size=(sp(40), sp(40)),
+                size_hint=(1, None),
+                # size=(sp(40), sp(40)),
                 theme_text_color="Error",
                 pos_hint={'center_x': 0.0}
             )
             delete_btn.bind(on_release=lambda x, idx=i: self.delete_address(idx))
 
-            item_layout.add_widget(edit_btn)
-            item_layout.add_widget(delete_btn)
-            right_ = IconRightWidget(icon="", )
-            right_.add_widget(item_layout)
+            # item_layout.add_widget(edit_btn)
+            # item_layout.add_widget(delete_btn)
+            # right_ = IconRightWidget(icon="", )
+            # right_.add_widget(item_layout)
 
             # item.add_widget(left_)
             # item.add_widget(item_layout)
-            item.add_widget(right_)
+            # item.add_widget(right_)
+            item.add_widget(edit_btn)
+            item.add_widget(delete_btn)
             address_list.add_widget(item)
 
         scroll_view.add_widget(address_list)
@@ -486,11 +499,13 @@ class ProfileScreen(Screen):
         self.show_addr_dialog = MDDialog(
             title="收货地址管理",
             type="custom",
+            size_hint_x=None,
+            width=dp(360),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
                 size_hint_y=None,
-                height=dp(300)
+                height=dp(400)
             ),
             buttons=[
                 MDFlatButton(
@@ -520,7 +535,7 @@ class ProfileScreen(Screen):
         content_layout = MDBoxLayout(orientation='vertical',
                                      spacing=dp(10),
                                      size_hint_y=None,
-                                     height=dp(300))
+                                     height=dp(230))
         self.edit_cont = dict()
         self.edit_cont['name'] = MDTextField(hint_text="请输入修改后的名称",
                                              text=tmp[0],
@@ -537,7 +552,8 @@ class ProfileScreen(Screen):
         self.edit_cont['addr'] = MDTextField(hint_text="请输入修改后的地址",
                                              text=tmp[-1],
                                              size_hint_y=None,
-                                             height=dp(80))
+                                             height=dp(80),
+                                             font_size=sp(16))
         self.edit_cont['addr'].font_name_hint_text = CHINESE_FONT_NAME
         self.edit_cont['addr'].font_name = CHINESE_FONT_NAME
         content_layout.add_widget(self.edit_cont['name'])
@@ -659,9 +675,10 @@ class ProfileScreen(Screen):
         self.show_addr_dialog.dismiss()
         self.dialog.dismiss()
         if "~" in self.new_address.text:
-            MDSnackbar(MDLabel(text="地址中不能包含特殊字符'~'", text_color=(0.2, 0.8, 0.5, 1))).open()
+            MDSnackbar(MDLabel(text="地址中不能包含特殊字符'~'", theme_text_color="Custom",
+                               text_color=(0.2, 0.8, 0.5, 1))).open()
             return
-        MDSnackbar(MDLabel(text="新增地址成功", text_color=(0.2, 0.6, 0.86, 1))).open()
+        MDSnackbar(MDLabel(text="新增地址成功", theme_text_color="Custom", text_color=(0.2, 0.6, 0.86, 1))).open()
 
         # 检查用户是否存在
         user = self.search_current_user()
@@ -785,9 +802,11 @@ class ProfileScreen(Screen):
 
             dialog.dismiss()
 
-            MDSnackbar(MDLabel(text="缓存已清除", text_color=(0.2, 0.8, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="缓存已清除", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
         except Exception as e:
-            MDSnackbar(MDLabel(text=f"清除缓存失败: {str(e)}", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(
+                MDLabel(text=f"清除缓存失败: {str(e)}", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
+            ).open()
 
     def show_about(self, *args):
         """显示关于信息"""
@@ -903,7 +922,7 @@ class ProfileScreen(Screen):
         feedback = self.feedback_input.text.strip()
 
         if not feedback:
-            MDSnackbar(MDLabel(text="请输入反馈内容", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请输入反馈内容", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         dialog.dismiss()
@@ -917,12 +936,13 @@ class ProfileScreen(Screen):
         except:
             pass
 
-        MDSnackbar(MDLabel(text="感谢您的反馈！", text_color=(0.2, 0.8, 0.2, 1))).open()
+        MDSnackbar(MDLabel(text="感谢您的反馈！", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
 
     def open_settings(self, *args):
         """打开设置"""
         # 直接跳转到设置部分
-        MDSnackbar(MDLabel(text="请使用下方的设置选项", text_color=(0.2, 0.6, 0.86, 1))).open()
+        MDSnackbar(
+            MDLabel(text="请使用下方的设置选项", theme_text_color="Custom", text_color=(0.2, 0.6, 0.86, 1))).open()
 
     def logout(self, *args):
         """退出登录"""
@@ -930,7 +950,7 @@ class ProfileScreen(Screen):
         app = App.get_running_app()
 
         if not app.current_user:
-            MDSnackbar(MDLabel(text="您还没有登录", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="您还没有登录", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         dialog = MDDialog(
@@ -959,7 +979,7 @@ class ProfileScreen(Screen):
         app = App.get_running_app()
         app.current_user = None
         app.cart.clear()
-        app.show_home()  # 返回主页
+        app.show_login()  # 返回登录页
 
     def go_back(self):
         """返回主页"""

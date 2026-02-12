@@ -76,7 +76,8 @@ class CartItemWidget(MDBoxLayout):
         minus_btn = MDIconButton(
             icon="minus",
             theme_text_color="Primary",
-            icon_size='16sp'
+            icon_size='16sp',
+            valign='center'
         )
         minus_btn.bind(on_release=self.decrease_quantity)
 
@@ -92,7 +93,8 @@ class CartItemWidget(MDBoxLayout):
         plus_btn = MDIconButton(
             icon="plus",
             theme_text_color="Primary",
-            icon_size='16sp'
+            icon_size='16sp',
+            valign='center'
         )
         plus_btn.bind(on_release=self.increase_quantity)
 
@@ -105,7 +107,6 @@ class CartItemWidget(MDBoxLayout):
             icon="delete",
             theme_text_color="Error",
             size_hint=(None, None),
-
         )
         delete_btn.bind(on_release=self.remove_item)
 
@@ -140,6 +141,10 @@ class CartItemWidget(MDBoxLayout):
         from kivy.app import App
         app = App.get_running_app()
         app.update_cart_item(self.product_id, self.quantity)
+
+        # 更新商品界面 购物车徽章
+        product_screen = app.screen_manager.get_screen("products")
+        product_screen.update_badge_color_text(app.cart.item_count)
 
     def remove_item(self, *args):
         """移除商品"""

@@ -224,7 +224,7 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
         self.search_input = MDTextField(
             hint_text="搜索商品...",
             mode="rectangle",
-            size_hint=(0.6, 1),
+            size_hint=(0.7, 1),
             icon_left="magnify"
         )
         self.search_input.font_name_hint_text = CHINESE_FONT_NAME
@@ -232,8 +232,9 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
 
         # 分类筛选
         self.category_filter_btn = MDRaisedButton(
-            text="全部分类",
-            size_hint=(0.4, 1)
+            text="选择分类",
+            size_hint=(0.3, 1),
+            md_bg_color=(0.2, 0.6, 0.2, 1)
         )
         self.category_filter_btn.bind(on_release=self.show_category_menu)
 
@@ -264,7 +265,7 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
 
         # 应用分类筛选
         if category_filter and category_filter != "全部":
-            products = [p for p in products if p.category.value == category_filter]
+            products = [p for p in products if p.category == category_filter]
 
         # 应用搜索筛选
         search_text = self.search_input.text.strip().lower()
@@ -332,11 +333,6 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
             )
 
             # 分类标签
-            # category_chip = MDChip(
-            #     text=product.category,
-            #     size_hint=(None, None),
-            #     size=(100, 25)
-            # )
             category_label = MDLabel(
                 text=product.category,
                 theme_text_color="Secondary",
@@ -376,24 +372,27 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
             )
 
             # 调整库存按钮
-            adjust_btn = MDFlatButton(
+            adjust_btn = MDRaisedButton(
                 text="调整库存",
-                size_hint=(0.33, 1)
+                size_hint=(0.33, 1),
+                md_bg_color=(0.2, 0.8, 0.6, 1)
             )
             adjust_btn.bind(on_release=lambda x, p=product: self.adjust_stock(p))
 
             # 编辑按钮
-            edit_btn = MDFlatButton(
+            edit_btn = MDRaisedButton(
                 text="编辑",
-                size_hint=(0.33, 1)
+                size_hint=(0.33, 1),
+                md_bg_color=(0.2, 0.4, 0.2, 1)
             )
             edit_btn.bind(on_release=lambda x, p=product: self.edit_product(p))
 
             # 删除按钮
-            delete_btn = MDFlatButton(
+            delete_btn = MDRaisedButton(
                 text="删除",
-                theme_text_color="Error",
-                size_hint=(0.33, 1)
+                # theme_text_color="Error",
+                size_hint=(0.33, 1),
+                md_bg_color=(0.6, 0.4, 0.6, 1)
             )
             delete_btn.bind(on_release=lambda x, p=product: self.delete_product(p))
 
@@ -422,6 +421,7 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
             inventory_screen.show_ecit_product_info_dialog(product)
+
     def delete_product(self, product):
         """删除商品"""
         from kivy.app import App
@@ -455,15 +455,16 @@ class CategoriesTab(MDFloatLayout, MDTabsBase):
         header_card.add_widget(MDLabel(
             text="商品分类",
             theme_text_color="Primary",
-            font_style="H5",
-            size_hint=(0.7, 1)
+            font_style="H6",
+            size_hint=(0.8, 1)
         ))
 
         add_btn = MDIconButton(
             icon="plus",
             theme_text_color="Primary",
-            size_hint=(None, None),
-            size=(sp(40), sp(40))
+            size_hint=(0.2, 1),
+            # size=(sp(40), sp(40))
+            # md_bg_color=(0.2, 0.6, 0.86, 1),
         )
         add_btn.bind(on_release=self.add_category_callback)
 
@@ -515,34 +516,36 @@ class CategoriesTab(MDFloatLayout, MDTabsBase):
             item_layout = MDBoxLayout(
                 orientation='horizontal',
                 adaptive_height=True,
-                size_hint=(None, None),
-                size=(sp(120), sp(40)),
+                size_hint=(1, None),
+                # size=(sp(120), sp(40)),
                 spacing=dp(5)
             )
 
-            edit_btn = MDIconButton(
+            edit_btn = IconRightWidget(
                 icon="pencil",
-                size_hint=(None, None),
-                size=(sp(40), sp(40)),
+                size_hint=(1, None),
+                # size=(sp(40), sp(40)),
                 theme_text_color="Hint"
             )
             edit_btn.bind(on_release=lambda x, cat=category: self.edit_category(cat))
 
-            delete_btn = MDIconButton(
+            delete_btn = IconRightWidget(
                 icon="delete",
-                size_hint=(None, None),
-                size=(sp(40), sp(40)),
+                size_hint=(1, None),
+                # size=(sp(40), sp(40)),
                 theme_text_color="Error"
             )
             delete_btn.bind(on_release=lambda x, cat=category: self.delete_category(cat))
 
-            item_layout.add_widget(edit_btn)
-            item_layout.add_widget(delete_btn)
-            right_ = IconRightWidget(icon="", )
-            right_.add_widget(item_layout)
+            # item_layout.add_widget(edit_btn)
+            # item_layout.add_widget(delete_btn)
+            # right_ = IconRightWidget(icon="", size=(dp(200), dp(40)))  # 通常只放置一个图标
+            # right_.add_widget(item_layout)
 
             # item.add_widget(item_layout)
-            item.add_widget(right_)
+            # item.add_widget(right_)
+            item.add_widget(edit_btn)
+            item.add_widget(delete_btn)
             self.category_list.add_widget(item)
 
     def edit_category(self, category):
@@ -609,6 +612,7 @@ class InventoryScreen(Screen):
 
     def on_enter(self):
         """进入页面时加载数据"""
+        self.products_tab.category_filter_btn.text = "选择分类"  # 默认显示
         self.refresh_inventory()
 
     def refresh_inventory(self):
@@ -662,7 +666,8 @@ class InventoryScreen(Screen):
             self.category_menu = MDDropdownMenu(
                 caller=self.products_tab.category_filter_btn,
                 items=menu_items,
-                width_mult=dp(4)
+                width_mult=dp(4),
+                hor_growth="left",  # 水平向左侧扩展
             )
 
     def filter_by_category(self, category_name):
@@ -1044,15 +1049,17 @@ class InventoryScreen(Screen):
         )
         set_btn.bind(on_release=lambda x: self.set_adjust_type("set"))
 
-        add_btn = MDFlatButton(
+        add_btn = MDRaisedButton(
             text="增加",
-            size_hint=(0.33, 1)
+            size_hint=(0.33, 1),
+            md_bg_color=(0.6, 0.4, 0.6, 1),
         )
         add_btn.bind(on_release=lambda x: self.set_adjust_type("add"))
 
-        subtract_btn = MDFlatButton(
+        subtract_btn = MDRaisedButton(
             text="减少",
-            size_hint=(0.33, 1)
+            size_hint=(0.33, 1),
+            md_bg_color=(0.6, 0.4, 0.6, 1),
         )
         subtract_btn.bind(on_release=lambda x: self.set_adjust_type("subtract"))
 
@@ -1114,7 +1121,7 @@ class InventoryScreen(Screen):
             width=dp(360),
             content_cls=MDBoxLayout(
                 orientation='vertical',
-                spacing=dp(0),
+                spacing=dp(15),
                 size_hint_y=None,
                 height=dp(500)
             ),
@@ -1141,26 +1148,31 @@ class InventoryScreen(Screen):
         self.product_edit_info['name'].font_name = CHINESE_FONT_NAME
 
         # 商品描述
-        self.product_edit_info['desc'] = MDTextField(hint_text="商品描述", text=product.description, mode="rectangle", multiline=True)
+        self.product_edit_info['desc'] = MDTextField(hint_text="商品描述", text=product.description, mode="rectangle",
+                                                     multiline=True)
         self.product_edit_info['desc'].font_name_hint_text = CHINESE_FONT_NAME
         self.product_edit_info['desc'].font_name = CHINESE_FONT_NAME
 
         spec_str = "\n".join([f"{k}:{v}" for k, v in product.specifications.items()])
-        self.product_edit_info['spec'] = MDTextField(hint_text="规格/配置/其他", text=spec_str, mode="rectangle", multiline=True)
+        self.product_edit_info['spec'] = MDTextField(hint_text="规格/配置/其他", text=spec_str, mode="rectangle",
+                                                     multiline=True)
         self.product_edit_info['spec'].font_name_hint_text = CHINESE_FONT_NAME
         self.product_edit_info['spec'].font_name = CHINESE_FONT_NAME
 
         # 计量单位
-        self.product_edit_info['unit'] = MDTextField(hint_text="计量单位", text=product.unit, mode="rectangle", multiline=True)
+        self.product_edit_info['unit'] = MDTextField(hint_text="计量单位", text=product.unit, mode="rectangle",
+                                                     multiline=True)
         self.product_edit_info['unit'].font_name_hint_text = CHINESE_FONT_NAME
         self.product_edit_info['unit'].font_name = CHINESE_FONT_NAME
 
         # 价格
-        self.product_edit_info['price'] = MDTextField(hint_text="价格", text=str(product.price), mode="rectangle", input_filter="float")
+        self.product_edit_info['price'] = MDTextField(hint_text="价格", text=str(product.price), mode="rectangle",
+                                                      input_filter="float")
         self.product_edit_info['price'].font_name_hint_text = CHINESE_FONT_NAME
         self.product_edit_info['price'].font_name = CHINESE_FONT_NAME
 
-        self.product_edit_info['suggest'] = MDTextField(hint_text="建议零售价格", text=str(product.suggest), mode="rectangle", input_filter="float")
+        self.product_edit_info['suggest'] = MDTextField(hint_text="建议零售价格", text=str(product.suggest),
+                                                        mode="rectangle", input_filter="float")
         self.product_edit_info['suggest'].font_name_hint_text = CHINESE_FONT_NAME
         self.product_edit_info['suggest'].font_name = CHINESE_FONT_NAME
 
@@ -1206,7 +1218,8 @@ class InventoryScreen(Screen):
             for ss in spec_str.split('\n'):
                 tmp = ss.split(':')
                 if len(tmp) < 2:
-                    MDSnackbar(MDLabel(text=f"{self.product_edit_info['spec'].hint_text}\n每行信息均要遵循‘特征:描述’的格式")).open()
+                    MDSnackbar(MDLabel(
+                        text=f"{self.product_edit_info['spec'].hint_text}\n每行信息均要遵循‘特征:描述’的格式")).open()
                     return
                 else:
                     product.specifications[tmp[0]] = ":".join(tmp[1:])
@@ -1222,7 +1235,6 @@ class InventoryScreen(Screen):
             MDSnackbar(MDLabel(text="库存更新成功", text_color=(0.2, 0.8, 0.2, 1))).open()
         else:
             MDSnackbar(MDLabel(text="库存更新失败", text_color=(0.9, 0.2, 0.2, 1))).open()
-
 
     def show_add_category_dialog(self, *args):
         """显示添加分类对话框"""
@@ -1314,7 +1326,7 @@ class InventoryScreen(Screen):
                 orientation='vertical',
                 spacing=dp(15),
                 size_hint_y=None,
-                height=dp(200)
+                height=dp(230)
             ),
             buttons=[
                 MDFlatButton(
@@ -1447,4 +1459,4 @@ class InventoryScreen(Screen):
         """返回主页"""
         from kivy.app import App
         app = App.get_running_app()
-        app.show_orders()
+        app.show_home()

@@ -70,9 +70,9 @@ class HomeScreen(Screen):
         # 功能卡片 -- 库存管理(package-variant)移到，服务端
         functions = [
             ("shopping", "浏览商品", "查看和购买商品", "#3498db"),
-            ("file-document", "订单/库存", "订单和库存管理", "#2ecc71"),
+            ("file-document", "订单管理", "历史订单统计", "#2ecc71"),
             ("account", "个人中心", "个人信息和设置", "#9b59b6"),
-            ("logout", "退出登录", "安全退出账户", "#e74c3c")
+            ("store-cog", "库存管理", "商品分类和库存", "#e74c3c")
         ]
 
         for icon, title, subtitle, color in functions:
@@ -123,8 +123,8 @@ class HomeScreen(Screen):
                 card.bind(on_release=self.show_orders)
             elif icon == "account":
                 card.bind(on_release=self.show_profile)
-            elif icon == "logout":
-                card.bind(on_release=self.show_logout_dialog)
+            elif icon == "store-cog":
+                card.bind(on_release=self.show_inventory)
 
             grid.add_widget(card)
 
@@ -148,7 +148,7 @@ class HomeScreen(Screen):
     def open_menu(self):
         """打开菜单"""
         MDSnackbar(
-            MDLabel(text="菜单功能开发中", text_color=(0.2, 0.6, 0.86, 1)),
+            MDLabel(text="菜单功能开发中", theme_text_color="Custom", text_color=(0.2, 0.6, 0.86, 1)),
             duration=3).open()
         return
 
@@ -176,39 +176,45 @@ class HomeScreen(Screen):
         app = App.get_running_app()
         app.show_profile()
 
-    def show_logout_dialog(self, *args):
-        """显示退出登录对话框"""
+    def show_inventory(self, *args):
+        """显示我的订单"""
         from kivy.app import App
         app = App.get_running_app()
+        app.show_inventory()
 
-        if not app.current_user:
-            MDSnackbar(MDLabel(text="您还没有登录", text_color=(0.9, 0.2, 0.2, 1))).open()
-            return
+    # def show_logout_dialog(self, *args):
+    #     """显示退出登录对话框"""
+    #     from kivy.app import App
+    #     app = App.get_running_app()
+    #
+    #     if not app.current_user:
+    #         MDSnackbar(MDLabel(text="您还没有登录", text_color=(0.9, 0.2, 0.2, 1))).open()
+    #         return
+    #
+    #     dialog = MDDialog(
+    #         title="退出登录",
+    #         text=f"确定要退出登录吗？\n当前用户：{app.current_user['name']}",
+    #         buttons=[
+    #             MDFlatButton(
+    #                 text="取消",
+    #                 on_release=lambda x: dialog.dismiss()
+    #             ),
+    #             MDRaisedButton(
+    #                 text="确定",
+    #                 md_bg_color=(0.9, 0.2, 0.2, 1),
+    #                 on_release=lambda x: self.confirm_logout(dialog)
+    #             )
+    #         ]
+    #     )
+    #     dialog.ids.title.font_name = CHINESE_FONT_NAME
+    #     dialog.open()
 
-        dialog = MDDialog(
-            title="退出登录",
-            text=f"确定要退出登录吗？\n当前用户：{app.current_user['name']}",
-            buttons=[
-                MDFlatButton(
-                    text="取消",
-                    on_release=lambda x: dialog.dismiss()
-                ),
-                MDRaisedButton(
-                    text="确定",
-                    md_bg_color=(0.9, 0.2, 0.2, 1),
-                    on_release=lambda x: self.confirm_logout(dialog)
-                )
-            ]
-        )
-        dialog.ids.title.font_name = CHINESE_FONT_NAME
-        dialog.open()
-
-    def confirm_logout(self, dialog):
-        """确认退出登录"""
-        dialog.dismiss()
-
-        from kivy.app import App
-        app = App.get_running_app()
-        app.current_user = None
-        app.cart.clear()
-        app.show_login()
+    # def confirm_logout(self, dialog):
+    #     """确认退出登录"""
+    #     dialog.dismiss()
+    #
+    #     from kivy.app import App
+    #     app = App.get_running_app()
+    #     app.current_user = None
+    #     app.cart.clear()
+    #     app.show_login()

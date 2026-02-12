@@ -437,8 +437,14 @@ class LoginScreen(Screen):
 
     def show_error(self, message):
         """显示错误消息"""
-        MDSnackbar(MDLabel(text=message, text_color=(0.9, 0.2, 0.2, 1))).open()
+        MDSnackbar(
+            MDLabel(text=message, theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1)),
+            md_bg_color=(0.8, 0.8, 0.8, 1)
+        ).open()
 
     def show_success(self, message):
         """显示成功消息"""
-        MDSnackbar(MDLabel(text=message, theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
+        MDSnackbar(
+            MDLabel(text=message, theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1)),
+            md_bg_color=(0.2, 0.2, 0.2, 1)
+        ).open()
