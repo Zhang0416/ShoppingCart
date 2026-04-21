@@ -130,6 +130,12 @@ class ShoppingCartApp(MDApp):
         cart_screen = self.screen_manager.get_screen("cart")
         cart_screen.update_cart()
 
+    def update_cart_item_discount(self, product_id, discount_price):
+        """更新购物车商品折扣价"""
+        self.cart.update_discount_price(product_id, discount_price)
+        cart_screen = self.screen_manager.get_screen("cart")
+        cart_screen.update_cart()
+
     def remove_from_cart(self, product_id):
         """从购物车移除商品"""
         self.cart.remove_item(product_id)

@@ -79,7 +79,7 @@
     "price": 89.0,
     "suggest": 99.0,
     "category": "图书音像",
-    "stock": 190,
+    "stock": 189,
     "unit": "本",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -163,5 +163,302 @@
     "sales_count": 3500,
     "is_featured": false,
     "created_at": "2026-01-04T22:20:54.270793"
+  },
+  {
+    "id": "p009",
+    "name": "联想小新Pad Pro 2025",
+    "description": "12.7英寸144Hz显示屏，MTK天玑8300处理器，8GB+256GB大存储",
+    "price": 2299.0,
+    "suggest": 2599.0,
+    "category": "电子产品",
+    "stock": 35,
+    "unit": "台",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {
+      "屏幕": "12.7英寸 144Hz LCD",
+      "存储": "8GB+256GB",
+      "电池": "10200mAh"
+    },
+    "rating": 4.6,
+    "sales_count": 520,
+    "is_featured": true,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p010",
+    "name": "华为FreeBuds Pro 4",
+    "description": "主动降噪，无线充电，超长续航，IP54防水",
+    "price": 1499.0,
+    "suggest": 1699.0,
+    "category": "电子产品",
+    "stock": 68,
+    "unit": "副",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {
+      "降噪": "智能动态ANC",
+      "续航": "33小时",
+      "防水": "IP54"
+    },
+    "rating": 4.8,
+    "sales_count": 1100,
+    "is_featured": true,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p011",
+    "name": "纯棉T恤",
+    "description": "100%纯棉，圆领设计，多色可选，适合春夏穿着",
+    "price": 89.0,
+    "suggest": 129.0,
+    "category": "服装服饰",
+    "stock": 200,
+    "unit": "件",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {
+      "尺码": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "颜色": [
+        "白色",
+        "黑色",
+        "蓝色",
+        "灰色"
+      ]
+    },
+    "rating": 4.5,
+    "sales_count": 2500,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p012",
+    "name": "直筒牛仔裤",
+    "description": "经典直筒版型，弹力面料，百搭款式",
+    "price": 199.0,
+    "suggest": 259.0,
+    "category": "服装服饰",
+    "stock": 150,
+    "unit": "条",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {
+      "尺码": [
+        "28",
+        "29",
+        "30",
+        "31",
+        "32",
+        "34"
+      ],
+      "颜色": [
+        "深蓝",
+        "浅蓝",
+        "黑色"
+      ]
+    },
+    "rating": 4.6,
+    "sales_count": 1800,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p013",
+    "name": "薯片大礼包",
+    "description": "多种口味混合装，酥脆可口，休闲零食",
+    "price": 29.9,
+    "suggest": 39.9,
+    "category": "食品饮料",
+    "stock": 300,
+    "unit": "包",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {
+      "口味": [
+        "原味",
+        "番茄",
+        "烧烤",
+        "海盐"
+      ]
+    },
+    "rating": 4.4,
+    "sales_count": 5600,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p014",
+    "name": "纯牛奶整箱",
+    "description": "新鲜纯牛奶，营养早餐，高钙低脂",
+    "price": 59.0,
+    "suggest": 69.0,
+    "category": "食品饮料",
+    "stock": 200,
+    "unit": "箱",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {
+      "规格": "250ml×12盒",
+      "钙含量": "120mg/100ml"
+    },
+    "rating": 4.7,
+    "sales_count": 4200,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p015",
+    "name": "Python编程从入门到实践",
+    "description": "Python入门经典书籍，理论与实践结合",
+    "price": 79.0,
+    "suggest": 99.0,
+    "category": "图书音像",
+    "stock": 150,
+    "unit": "本",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {},
+    "rating": 4.8,
+    "sales_count": 3800,
+    "is_featured": true,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p016",
+    "name": "得力中性笔",
+    "description": "顺滑书写，0.5mm笔尖，商务办公首选",
+    "price": 9.9,
+    "suggest": 15.0,
+    "category": "文具",
+    "stock": 500,
+    "unit": "支",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {
+      "颜色": "黑色",
+      "笔尖": "0.5mm"
+    },
+    "rating": 4.5,
+    "sales_count": 8900,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p017",
+    "name": "荧光笔套装",
+    "description": "6色荧光笔，MARKER记号笔，学习办公必备",
+    "price": 12.8,
+    "suggest": 18.0,
+    "category": "文具",
+    "stock": 350,
+    "unit": "套",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {
+      "颜色": "黄、绿、蓝、橙、粉、紫"
+    },
+    "rating": 4.6,
+    "sales_count": 4500,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p018",
+    "name": "彩色马克笔",
+    "description": "12色双头马克笔，水彩���，���合手账和素描",
+    "price": 25.9,
+    "suggest": 35.0,
+    "category": "文具",
+    "stock": 280,
+    "unit": "套",
+    "images": [
+      "./screens/assets/image/no_pic.jpg"
+    ],
+    "specifications": {
+      "颜色": "12色",
+      "笔头": "双头（圆头+细头）"
+    },
+    "rating": 4.7,
+    "sales_count": 3200,
+    "is_featured": true,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p019",
+    "name": "平板拖把",
+    "description": "免手洗拖地神器，铝合金杆加厚布，懒人清洁",
+    "price": 89.0,
+    "suggest": 119.0,
+    "category": "家居用品",
+    "stock": 120,
+    "unit": "套",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {
+      "尺寸": "40cm",
+      "材质": "铝合金杆+超细纤维布"
+    },
+    "rating": 4.5,
+    "sales_count": 6800,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p020",
+    "name": "收纳盒套装",
+    "description": "塑料收纳箱，衣柜衣橱整理，内衣袜子分格",
+    "price": 39.9,
+    "suggest": 59.0,
+    "category": "家居用品",
+    "stock": 180,
+    "unit": "套",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {
+      "规格": "4格+6格",
+      "材质": "塑料"
+    },
+    "rating": 4.6,
+    "sales_count": 5200,
+    "is_featured": false,
+    "created_at": "2026-04-10T10:00:00.000000"
+  },
+  {
+    "id": "p021",
+    "name": "纯棉四件套",
+    "description": "纯棉床单被套，活性印花，多规格可选",
+    "price": 199.0,
+    "suggest": 299.0,
+    "category": "家居用品",
+    "stock": 85,
+    "unit": "套",
+    "images": [
+      "./screens/assets/image/no_pic1.jpg"
+    ],
+    "specifications": {
+      "尺寸": "1.5米/1.8米床",
+      "面料": "100%纯棉"
+    },
+    "rating": 4.7,
+    "sales_count": 2800,
+    "is_featured": true,
+    "created_at": "2026-04-10T10:00:00.000000"
   }
 ]

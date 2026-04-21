@@ -66,10 +66,12 @@ class CartItem:
     quantity: int
     image: str = ""
     specifications: Dict = field(default_factory=dict)
+    discount_price: Optional[float] = None
 
     @property
     def subtotal(self):
-        return self.price * self.quantity
+        unit_price = self.discount_price if self.discount_price is not None else self.price
+        return unit_price * self.quantity
 
 
 class ShoppingCart:
@@ -103,6 +105,11 @@ class ShoppingCart:
             else:
                 self.items[product_id].quantity = quantity
 
+    def update_discount_price(self, product_id: str, discount_price: Optional[float]):
+        """更新商品折扣价"""
+        if product_id in self.items:
+            self.items[product_id].discount_price = discount_price
+
     def clear(self):
         self.items.clear()
         self.coupon = None
@@ -122,6 +129,15 @@ class ShoppingCart:
     @property
     def subtotal(self):
         return sum(item.subtotal for item in self.items.values())
+
+    @property
+    def item_discount(self):
+        """商品折扣优惠总额"""
+        total = 0
+        for item in self.items.values():
+            if item.discount_price is not None and item.discount_price < item.price:
+                total += (item.price - item.discount_price) * item.quantity
+        return total
 
     @property
     def discount(self):

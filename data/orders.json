@@ -316,5 +316,28 @@
     "status": "delivered",
     "created_at": "2026-02-05 20:47:55",
     "updated_at": ""
+  },
+  {
+    "order_id": "4fa1fe2046769d263ddcd3059890e4bed0857837",
+    "user_name": "demo",
+    "user_phone": "13800138000",
+    "items": [
+      {
+        "product_id": "p004",
+        "product_name": "Java编程思想",
+        "price": 89.0,
+        "quantity": 1,
+        "image": "./screens/assets/image/no_pic.jpg",
+        "specifications": {}
+      }
+    ],
+    "subtotal": 80.0,
+    "discount": 0,
+    "total": 80.0,
+    "address": "ddd~13865321245~北京市石景山区环湖中路",
+    "payment_method": "cash",
+    "status": "delivered",
+    "created_at": "2026-04-21 17:13:09",
+    "updated_at": ""
   }
 ]

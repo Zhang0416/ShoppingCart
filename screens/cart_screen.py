@@ -123,12 +123,20 @@ class CartScreen(Screen):
                 name=item.product_name,
                 price=item.price,
                 quantity=item.quantity,
-                image_url=item.image
+                image_url=item.image,
+                discount_price=item.discount_price
             )
             self.cart_layout.add_widget(cart_item)
 
         # 更新总价
-        self.total_label.text = f"数量：{app.cart.item_count}\n总价: ¥{app.cart.total:.1f}"
+        item_discount = app.cart.item_discount
+        coupon_discount = app.cart.discount
+        total = app.cart.total
+        if item_discount > 0 or coupon_discount > 0:
+            total_discount = item_discount + coupon_discount
+            self.total_label.text = f"数量：{app.cart.item_count}  优惠：¥{total_discount:.1f}\n总价: ¥{total:.1f}"
+        else:
+            self.total_label.text = f"数量：{app.cart.item_count}\n总价: ¥{total:.1f}"
 
     def refresh(self):
         """刷新"""
