@@ -86,33 +86,23 @@ class CheckoutScreen(Screen):
         discount_layout = MDBoxLayout(
             orientation='horizontal',
             size_hint=(1, None),
-            height=dp(50),  # 尺寸用 dp
+            height=dp(50),
             spacing=dp(20)
         )
         discount_label = MDLabel(
-            text="优惠:",
+            text="优惠金额:",
             theme_text_color="Secondary",
             font_style="Subtitle2",
-            size_hint=(0.2, 1)
+            size_hint=(0.4, 1)
         )
-        discount_set_btn = MDRaisedButton(
-            text="设置",
-            size_hint=(0.2, 0.8),
-            on_release=lambda x: self.discount_set_function()
+        self.discount_value_label = MDLabel(
+            text="¥0.00",
+            theme_text_color="Primary",
+            font_style="Subtitle2",
+            size_hint=(0.6, 1)
         )
-        self.discount_input_label = MDTextField(
-            hint_text="输入优惠金额",
-            # helper_text="输入优惠金额",
-            mode="rectangle",
-            input_filter="int",  # 可选：只允许输入数字
-            size_hint=(0.6, None),
-            height=dp(50)
-        )
-        self.discount_input_label.font_name_hint_text = CHINESE_FONT_NAME
-        # self.discount_input_label.font_name_helper_text = CHINESE_FONT_NAME
         discount_layout.add_widget(discount_label)
-        discount_layout.add_widget(self.discount_input_label)
-        discount_layout.add_widget(discount_set_btn)
+        discount_layout.add_widget(self.discount_value_label)
 
         # 总计
         self.total_label = MDLabel(
@@ -238,23 +228,13 @@ class CheckoutScreen(Screen):
         from kivy.app import App
         app = App.get_running_app()
 
-        self.subtotal_label.text = f"商品总价: ¥{app.cart.subtotal:.1f}"
-        self.total_label.text = f"应付总额: ¥{app.cart.total:.1f}"
+        original_subtotal = sum(item.price * item.quantity for item in app.cart.items.values())
+        item_discount = app.cart.item_discount
+        final_total = original_subtotal - item_discount
 
-    def discount_set_function(self):
-        """更新订单信息"""
-        from kivy.app import App
-        app = App.get_running_app()
-
-        if len(self.discount_input_label.text) > 0 and self.discount_input_label.text.isdigit():
-            val = float(self.discount_input_label.text)
-            if val >= app.cart.subtotal * 0.3:
-                MDSnackbar(
-                    MDLabel(text=f"优惠不能低于3折", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
-                ).open()
-                return
-            app.cart.set_coupon(val)
-            self.total_label.text = f"应付总额: ¥{app.cart.total:.1f}"
+        self.subtotal_label.text = f"商品总价: ¥{original_subtotal:.1f}"
+        self.discount_value_label.text = f"¥{item_discount:.1f}"
+        self.total_label.text = f"应付总额: ¥{final_total:.1f}"
 
     def open_address_menu(self, *args):
         from kivy.app import App
@@ -324,15 +304,19 @@ class CheckoutScreen(Screen):
 
         # 创建订单数据
         from datetime import datetime
+        original_subtotal = sum(item.price * item.quantity for item in app.cart.items.values())
+        item_discount = app.cart.item_discount
+        final_total = original_subtotal - item_discount
+
         order_data = {
             'items': [],
-            'subtotal': app.cart.subtotal,
-            'discount': app.cart.discount,
-            'total': app.cart.total,
+            'subtotal': original_subtotal,
+            'discount': item_discount,
+            'total': final_total,
             'address': self.address_label.text,
             'payment_method': self.selected_payment,
-            'order_id': self.generate_order_id(),  # 由 complete_order 方法生成
-            'order_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 由 complete_order 方法生成
+            'order_id': self.generate_order_id(),
+            'order_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
         # 转换购物车项
@@ -341,6 +325,7 @@ class CheckoutScreen(Screen):
                 'product_id': item.product_id,
                 'product_name': item.product_name,
                 'price': float(item.price),
+                'discount_price': float(item.discount_price) if item.discount_price is not None else float(item.price),
                 'quantity': item.quantity,
                 'image': item.image,
                 'specifications': item.specifications

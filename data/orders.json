@@ -10,7 +10,8 @@
         "price": 8499.0,
         "quantity": 1,
         "image": "./assets/image/demo/macbookairm2.png",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 8499.0
       }
     ],
     "subtotal": 8499.0,
@@ -33,7 +34,8 @@
         "price": 8999.0,
         "quantity": 1,
         "image": "./assets/image/demo/iphone15pro.jpeg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 8999.0
       },
       {
         "product_id": "p006",
@@ -41,7 +43,8 @@
         "price": 1299.0,
         "quantity": 2,
         "image": "https://via.placeholder.com/300x300/1abc9c/ffffff?text=手表",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 1299.0
       },
       {
         "product_id": "p005",
@@ -49,7 +52,8 @@
         "price": 199.0,
         "quantity": 2,
         "image": "https://via.placeholder.com/300x300/f39c12/ffffff?text=巧克力",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 199.0
       }
     ],
     "subtotal": 11995.0,
@@ -72,7 +76,8 @@
         "price": 89.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 89.0
       },
       {
         "product_id": "p005",
@@ -80,7 +85,8 @@
         "price": 199.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 199.0
       },
       {
         "product_id": "p007",
@@ -88,7 +94,8 @@
         "price": 399.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 399.0
       }
     ],
     "subtotal": 687.0,
@@ -111,7 +118,8 @@
         "price": 8999.0,
         "quantity": 1,
         "image": "./screens/assets/image/demo/iphone15pro.JPEG",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 8999.0
       }
     ],
     "subtotal": 8999.0,
@@ -134,7 +142,8 @@
         "price": 89.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 89.0
       },
       {
         "product_id": "p005",
@@ -142,7 +151,8 @@
         "price": 199.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 199.0
       }
     ],
     "subtotal": 288.0,
@@ -165,7 +175,8 @@
         "price": 8499.0,
         "quantity": 1,
         "image": "./screens/assets/image/demo/macbookairm2.png",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 8499.0
       }
     ],
     "subtotal": 8499.0,
@@ -188,7 +199,8 @@
         "price": 299.0,
         "quantity": 1,
         "image": "./screens/assets/image/demo/tshirtman.JPEG",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 299.0
       },
       {
         "product_id": "p004",
@@ -196,7 +208,8 @@
         "price": 89.0,
         "quantity": 3,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 89.0
       },
       {
         "product_id": "p006",
@@ -204,7 +217,8 @@
         "price": 1299.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 1299.0
       },
       {
         "product_id": "p005",
@@ -212,7 +226,8 @@
         "price": 199.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 199.0
       },
       {
         "product_id": "p007",
@@ -220,7 +235,8 @@
         "price": 399.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 399.0
       },
       {
         "product_id": "p008",
@@ -228,7 +244,8 @@
         "price": 599.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 599.0
       }
     ],
     "subtotal": 3062.0,
@@ -251,7 +268,8 @@
         "price": 89.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 89.0
       },
       {
         "product_id": "p005",
@@ -259,7 +277,8 @@
         "price": 199.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 199.0
       }
     ],
     "subtotal": 288.0,
@@ -282,7 +301,8 @@
         "price": 399.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 399.0
       }
     ],
     "subtotal": 399.0,
@@ -305,7 +325,8 @@
         "price": 299.0,
         "quantity": 1,
         "image": "./screens/assets/image/demo/tshirtman.JPEG",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 299.0
       }
     ],
     "subtotal": 299.0,
@@ -328,16 +349,59 @@
         "price": 89.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "discount_price": 80.0
       }
     ],
     "subtotal": 80.0,
-    "discount": 0,
-    "total": 80.0,
+    "discount": 19,
+    "total": 89.0,
     "address": "ddd~13865321245~北京市石景山区环湖中路",
     "payment_method": "cash",
     "status": "delivered",
     "created_at": "2026-04-21 17:13:09",
+    "updated_at": ""
+  },
+  {
+    "order_id": "3ce39bf0461b319c6c962094bf55e1a059c4154c",
+    "user_name": "demo",
+    "user_phone": "13800138000",
+    "items": [
+      {
+        "product_id": "p003",
+        "product_name": "男士休闲衬衫",
+        "price": 299.0,
+        "discount_price": 299.0,
+        "quantity": 1,
+        "image": "./screens/assets/image/demo/tshirtman.JPEG",
+        "specifications": {}
+      },
+      {
+        "product_id": "p008",
+        "product_name": "无线耳机",
+        "price": 599.0,
+        "discount_price": 500.0,
+        "quantity": 1,
+        "image": "./screens/assets/image/no_pic.jpg",
+        "specifications": {}
+      },
+      {
+        "product_id": "p011",
+        "product_name": "纯棉T恤",
+        "price": 89.0,
+        "discount_price": 89.0,
+        "quantity": 1,
+        "image": "./screens/assets/image/no_pic.jpg",
+        "specifications": {}
+      }
+    ],
+    "subtotal": 987.0,
+    "discount": 99.0,
+    "total": 888.0,
+    "address": "ddd~13865321245~北京市石景山区环湖中路",
+    "payment_method": "cash",
+    "status": "delivered",
+    "created_at": "2026-04-21 18:00:51",
     "updated_at": ""
   }
 ]

@@ -47,7 +47,7 @@
     "price": 299.0,
     "suggest": 299.0,
     "category": "服装服饰",
-    "stock": 96,
+    "stock": 95,
     "unit": "件",
     "images": [
       "./screens/assets/image/demo/tshirtman.JPEG"
@@ -153,7 +153,7 @@
     "price": 599.0,
     "suggest": 599.0,
     "category": "电子产品",
-    "stock": 197,
+    "stock": 196,
     "unit": "副",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -215,7 +215,7 @@
     "price": 89.0,
     "suggest": 129.0,
     "category": "服装服饰",
-    "stock": 200,
+    "stock": 199,
     "unit": "件",
     "images": [
       "./screens/assets/image/no_pic.jpg"

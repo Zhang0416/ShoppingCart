@@ -3,6 +3,8 @@ from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import MDSnackbar
 from kivy.metrics import sp
+from kivy.core.window import Window
+from kivy.utils import platform
 
 from screens.assets.config_chinese import register_chinese_font, set_kivymd_global_font
 from screens.components.models import ShoppingCart, OrderManager, InventoryManager, Database
@@ -37,6 +39,17 @@ class ShoppingCartApp(MDApp):
         self.theme_cls.theme_style = "Light"  # 浅色主题
         self.theme_cls.primary_palette = "Blue"
         self.theme_cls.accent_palette = "Orange"
+
+        # 平台适配：移动端全屏自适应，PC端固定为手机尺寸
+        if platform in ('android', 'ios'):
+            Window.fullscreen = 'auto'
+        else:
+            # PC端模拟 6.7 英寸手机屏幕（约 450×900 像素）
+            Window.size = (450, 900)
+            Window.minimum_width = 400
+            Window.minimum_height = 800
+            Window.maximum_width = 500
+            Window.maximum_height = 1000
 
         # 1. 注册中文字体（全局仅需调用一次）
         register_chinese_font()

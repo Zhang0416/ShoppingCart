@@ -683,30 +683,27 @@ class OrdersScreen(Screen):
 
         # 添加商品项
         counts = 0
-        table_items = [["\n      名称", "\n 数量", "\n    价格"]]
+        table_items = [["\n      名称", "\n 数量", "\n    原价", "\n   折扣价"]]
         for item in order.items:
             counts += item['quantity']
-            # item_text = f"• {item['product_name']:<16} × {item['quantity']:>3} = ¥{float(item['price']) * item['quantity']:5.1f}"
-            # item_label = MDLabel(
-            #     text=item_text,
-            #     theme_text_color="Secondary",
-            #     size_hint_y=None,
-            #     font_style="Caption",
-            #     height=dp(20),
-            #     # halign='center'
-            # )
-            # recent_list.add_widget(item_label)
-            ss = float(item['price']) * item['quantity']
-            table_items.append([f"• {item['product_name']}", f" × {item['quantity']}", f" = ¥{ss}"])
+            original_ss = float(item['price']) * item['quantity']
+            discount_price = item.get('discount_price', item['price'])
+            discount_ss = float(discount_price) * item['quantity']
+            table_items.append([
+                f"• {item['product_name']}",
+                f" × {item['quantity']}",
+                f" ¥{original_ss:.1f}",
+                f" ¥{discount_ss:.1f}"
+            ])
 
         table_layout = MDBoxLayout(
             orientation='horizontal',
             size_hint=(1, None),
-            height=dp(15 * (counts + 1)),
+            height=dp(18 * (len(order.items) + 1)),
             padding=dp(10),
             spacing=dp(0)
         )
-        size_x_arr = [0.5, 0.2, 0.3]
+        size_x_arr = [0.4, 0.15, 0.225, 0.225]
         for i, cols in enumerate(list(zip(*table_items))):  # zip命令将二维list的每列打包成list
             item_text = MDLabel(
                 text="\n".join(cols),
