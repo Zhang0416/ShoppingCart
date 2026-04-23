@@ -20,6 +20,9 @@ from screens.inventory_screen import InventoryScreen
 from kivy.config import Config
 Config.set('input', 'keyboard_mode', 'system')
 
+import os
+from kivy.resources import resource_add_path
+
 
 class ShoppingCartApp(MDApp):
     def __init__(self, **kwargs):
@@ -50,6 +53,12 @@ class ShoppingCartApp(MDApp):
             Window.minimum_height = 800
             Window.maximum_width = 500
             Window.maximum_height = 1000
+
+        # 0. 注册图片资源根目录，确保运行时保存的图片能被找到
+        if platform == 'android':
+            resource_add_path(self.user_data_dir)
+        else:
+            resource_add_path(os.path.dirname(os.path.abspath(__file__)))
 
         # 1. 注册中文字体（全局仅需调用一次）
         register_chinese_font()
@@ -101,6 +110,30 @@ class ShoppingCartApp(MDApp):
     def show_inventory(self):
         """显示库存管理"""
         self.screen_manager.current = "inventory"
+
+    def resolve_image_path(self, image_path):
+        """将图片相对路径解析为当前平台的绝对路径。
+        仅对运行时添加的图片（存在于文件系统中）返回绝对路径；
+        预打包的图片（APK assets 中）保留相对路径，让 resource_find 查找。"""
+        if not image_path:
+            return ""
+        if image_path.startswith(('http://', 'https://')):
+            return image_path
+        if image_path.startswith('./'):
+            image_path = image_path[2:]
+        if platform == 'android':
+            abs_path = os.path.join(self.user_data_dir, image_path)
+            # 运行时添加的图片存在于 user_data_dir，返回绝对路径
+            if os.path.exists(abs_path):
+                return abs_path
+            # 预打包图片在 APK assets 中，去掉 ./ 前缀让 resource_find 查找
+            return image_path
+        else:
+            project_root = os.path.dirname(os.path.abspath(__file__))
+            abs_path = os.path.join(project_root, image_path)
+            if os.path.exists(abs_path):
+                return abs_path
+            return image_path
 
     def add_to_cart(self, product_id):
         """添加商品到购物车"""

@@ -92,12 +92,12 @@ class CartScreen(Screen):
             text=f"总计: ¥0.00",
             theme_text_color="Error",
             font_style="Headline6",
-            size_hint=(0.35, 1)
+            size_hint=(0.45, 1)
         )
 
         # 导入历史订单按钮
         self.import_btn = MDRaisedButton(
-            text="导入历史订单",
+            text="历史折扣",
             size_hint=(0.3, 1),
             md_bg_color=(0.9, 0.5, 0.1, 1)
         )
@@ -109,7 +109,7 @@ class CartScreen(Screen):
         # 结算按钮
         self.checkout_btn = MDRaisedButton(
             text="去结算",
-            size_hint=(0.3, 1),
+            size_hint=(0.25, 1),
             md_bg_color=(0.2, 0.8, 0.4, 1)
         )
         self.checkout_btn.bind(on_release=self.checkout)
@@ -188,9 +188,9 @@ class CartScreen(Screen):
         total = app.cart.total
         if item_discount > 0 or coupon_discount > 0:
             total_discount = item_discount + coupon_discount
-            self.total_label.text = f"数量：{app.cart.item_count}  优惠：¥{total_discount:.1f}\n总价: ¥{total:.1f}"
+            self.total_label.text = f"数量: {app.cart.item_count}\n优惠: ¥{total_discount:.1f}\n总价: ¥{total:.1f}"
         else:
-            self.total_label.text = f"数量：{app.cart.item_count}\n总价: ¥{total:.1f}"
+            self.total_label.text = f"数量: {app.cart.item_count}\n总价: ¥{total:.1f}"
 
     # ========== 地址相关（从 CheckoutScreen 迁移） ==========
 

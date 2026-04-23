@@ -207,12 +207,13 @@ class ProductScreen(Screen):
             products = [p for p in products if search_text in p.name.lower() or search_text in p.description.lower()]
 
         for product in products:
+            app = App.get_running_app()
             card = ProductCard(
                 product_id=product.id,
                 name=product.name,
                 description=product.description,
                 price=product.price,
-                image_url=product.images[0] if product.images else "",
+                image_url=app.resolve_image_path(product.images[0]) if product.images else "",
                 rating=product.rating,
                 stock=product.stock
             )
@@ -285,12 +286,13 @@ class ProductScreen(Screen):
         ]
 
         for product in filtered_products:
+            app = App.get_running_app()
             card = ProductCard(
                 product_id=product.id,
                 name=product.name,
                 description=product.description,
                 price=product.price,
-                image_url=product.images[0] if product.images else "",
+                image_url=app.resolve_image_path(product.images[0]) if product.images else "",
                 rating=product.rating,
                 stock=product.stock
             )

@@ -16,7 +16,13 @@ from kivymd.uix.chip import MDChip
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.snackbar import MDSnackbar
 from kivy.metrics import dp, sp
+from kivy.uix.image import Image
+from kivy.utils import platform
+from kivy.logger import Logger
 import json
+import os
+import shutil
+import uuid
 
 from .components.models import ProductCategory
 from .assets.config_chinese import CHINESE_FONT_NAME
@@ -638,7 +644,7 @@ class InventoryScreen(Screen):
 
         # 设置分类菜单
         self.setup_category_menu()
-        MDSnackbar(MDLabel(text="库存数据已刷新", text_color=(0.2, 0.8, 0.2, 1))).open()
+        MDSnackbar(MDLabel(text="库存数据已刷新", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
 
     def setup_category_menu(self):
         """设置分类菜单"""
@@ -730,7 +736,7 @@ class InventoryScreen(Screen):
                 orientation='vertical',
                 spacing=dp(0),
                 size_hint_y=None,
-                height=dp(500)
+                height=dp(580)
             ),
             buttons=[
                 MDFlatButton(
@@ -809,6 +815,52 @@ class InventoryScreen(Screen):
         # price_suggest_layout.add_widget(self.product_input['price'])
         # price_suggest_layout.add_widget(self.product_input['suggest'])
 
+        # 图片选择卡片
+        self.product_input['image_source'] = None
+        self.product_input['image_card'] = MDCard(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(80),
+            padding=dp(10),
+            spacing=dp(10),
+            elevation=dp(2),
+            radius=[dp(10)],
+            ripple_behavior=True
+        )
+        self.product_input['image_card'].bind(
+            on_release=lambda x: self.show_image_picker_dialog()
+        )
+
+        self.product_input['image_preview'] = Image(
+            size_hint=(None, None),
+            size=(dp(60), dp(60)),
+            allow_stretch=True,
+            keep_ratio=True,
+            source=""
+        )
+        self.product_input['image_status'] = MDLabel(
+            text="点击选择商品图片",
+            theme_text_color="Hint",
+            font_style="Body2",
+            size_hint=(1, 1)
+        )
+        self.product_input['image_clear'] = MDIconButton(
+            icon="close-circle",
+            theme_text_color="Error",
+            size_hint=(None, None),
+            size=(dp(40), dp(40)),
+            opacity=0,
+            disabled=True
+        )
+        def _on_clear_image(btn):
+            self._clear_product_image()
+            return True
+        self.product_input['image_clear'].bind(on_release=_on_clear_image)
+
+        self.product_input['image_card'].add_widget(self.product_input['image_preview'])
+        self.product_input['image_card'].add_widget(self.product_input['image_status'])
+        self.product_input['image_card'].add_widget(self.product_input['image_clear'])
+
         # 选择分类卡片
         self.product_input['category'] = MDCard(
             orientation='horizontal',
@@ -853,6 +905,7 @@ class InventoryScreen(Screen):
         featured_layout.add_widget(self.product_input['featured'])
 
         # 添加到对话框
+        recent_list.add_widget(self.product_input['image_card'])
         recent_list.add_widget(self.product_input['category'])
         recent_list.add_widget(self.product_input['name'])
         recent_list.add_widget(self.product_input['desc'])
@@ -928,7 +981,7 @@ class InventoryScreen(Screen):
             errors.append("分类")
 
         if errors:
-            MDSnackbar(MDLabel(text=f"请填写: {', '.join(errors)}", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text=f"请填写: {', '.join(errors)}", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         try:
@@ -938,12 +991,12 @@ class InventoryScreen(Screen):
 
             if price_val <= 0:
                 raise ValueError("价格必须大于0")
-            if suggest_val < price_val:
+            if suggest_val < price_val * 0.5:
                 raise ValueError("建议零售价过低")
             if stock_val < 0:
                 raise ValueError("库存不能为负数")
         except ValueError as e:
-            MDSnackbar(MDLabel(text=f"输入错误: {str(e)}", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text=f"输入错误: {str(e)}", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         # from kivy.app import App
@@ -985,6 +1038,21 @@ class InventoryScreen(Screen):
         app = App.get_running_app()
         new_product = app.inventory_manager.add_product(product_data)
 
+        # 保存商品图片
+        image_source = self.product_input.get('image_source')
+        if image_source:
+            try:
+                image_path = self._save_product_image(
+                    image_source, category_name, new_product.id
+                )
+                new_product.images = [image_path]
+                app.inventory_manager.update_product_info(new_product)
+            except Exception as e:
+                Logger.warning(f"保存商品图片失败: {e}")
+                MDSnackbar(
+                    MDLabel(text=f"图片保存失败: {e}", text_color=(0.9, 0.2, 0.2, 1))
+                ).open()
+
         dialog.dismiss()
 
         # 刷新数据
@@ -992,6 +1060,215 @@ class InventoryScreen(Screen):
         MDSnackbar(
             MDLabel(text=f"商品 '{name}' 添加成功", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))
         ).open()
+
+    # ========== 图片选择相关方法 ==========
+
+    def show_image_picker_dialog(self):
+        """显示图片来源选择对话框"""
+        dialog = MDDialog(
+            title="选择图片来源",
+            buttons=[
+                MDFlatButton(
+                    text="取消",
+                    on_release=lambda x: dialog.dismiss()
+                ),
+                MDRaisedButton(
+                    text="照片库",
+                    on_release=lambda x: self._pick_from_gallery(dialog)
+                ),
+                MDRaisedButton(
+                    text="相机",
+                    md_bg_color=(0.6, 0.4, 0.6, 1),
+                    on_release=lambda x: self._take_photo(dialog)
+                ),
+            ]
+        )
+        dialog.ids.title.font_name = CHINESE_FONT_NAME
+        dialog.open()
+
+    def _ensure_permission(self, permission_name, on_granted):
+        """确保 Android 运行时权限已授予，未授予则弹窗请求"""
+        if platform != 'android':
+            on_granted()
+            return
+        try:
+            from android.permissions import request_permissions, Permission, check_permission
+            perm = getattr(Permission, permission_name)
+            if check_permission(perm):
+                on_granted()
+                return
+
+            def callback(permissions, grants):
+                if grants and all(grants):
+                    on_granted()
+                else:
+                    MDSnackbar(
+                        MDLabel(text=f"需要{permission_name}权限才能继续", text_color=(0.9, 0.2, 0.2, 1))
+                    ).open()
+
+            request_permissions([perm], callback)
+        except Exception as e:
+            Logger.error(f"请求权限失败: {e}")
+            on_granted()
+
+    def _pick_from_gallery(self, picker_dialog):
+        """从照片库选择图片"""
+        picker_dialog.dismiss()
+
+        def do_pick():
+            try:
+                from plyer import filechooser
+                filechooser.open_file(
+                    on_selection=self._on_gallery_selection,
+                    filters=[["Image", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp", "*.JPEG"]],
+                    multiple=False
+                )
+            except Exception as e:
+                Logger.error(f"打开文件选择器失败: {e}")
+                MDSnackbar(
+                    MDLabel(text="无法打开照片库", text_color=(0.9, 0.2, 0.2, 1))
+                ).open()
+
+        self._ensure_permission('READ_EXTERNAL_STORAGE', do_pick)
+
+    def _take_photo(self, picker_dialog):
+        """调用相机拍照"""
+        picker_dialog.dismiss()
+
+        def do_take():
+            try:
+                from plyer import camera
+                from kivy.app import App
+                app = App.get_running_app()
+                temp_file = os.path.join(app.user_data_dir, f"camera_{uuid.uuid4().hex[:8]}.jpg")
+                camera.take_picture(temp_file, self._on_camera_complete)
+            except Exception as e:
+                Logger.error(f"调用相机失败: {e}")
+                MDSnackbar(
+                    MDLabel(text="无法调用相机", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
+                ).open()
+
+        self._ensure_permission('CAMERA', do_take)
+
+    def _on_gallery_selection(self, selection):
+        """照片库选择回调"""
+        if selection:
+            self._set_product_image(selection[0])
+
+    def _on_camera_complete(self, path):
+        """相机拍照完成回调"""
+        if path and os.path.exists(path):
+            self._set_product_image(path)
+        elif path:
+            # 某些设备返回的路径可能需要额外处理
+            Logger.warning(f"相机返回路径不存在: {path}")
+            MDSnackbar(
+                MDLabel(text="拍照失败，请重试", text_color=(0.9, 0.2, 0.2, 1))
+            ).open()
+
+    def _set_product_image(self, source_path):
+        """设置商品预览图片"""
+        self.product_input['image_source'] = source_path
+        self.product_input['image_preview'].source = source_path
+        self.product_input['image_status'].text = os.path.basename(source_path)
+        self.product_input['image_status'].theme_text_color = "Primary"
+        self.product_input['image_clear'].opacity = 1
+        self.product_input['image_clear'].disabled = False
+
+    def _clear_product_image(self):
+        """清除已选图片"""
+        self.product_input['image_source'] = None
+        self.product_input['image_preview'].source = ""
+        self.product_input['image_status'].text = "点击选择商品图片"
+        self.product_input['image_status'].theme_text_color = "Hint"
+        self.product_input['image_clear'].opacity = 0
+        self.product_input['image_clear'].disabled = True
+
+    def _get_image_base_dir(self):
+        """获取图片存储根目录"""
+        if platform == 'android':
+            from kivy.app import App
+            app = App.get_running_app()
+            return os.path.join(app.user_data_dir, 'screens', 'assets', 'image')
+        else:
+            return os.path.abspath(os.path.join(os.path.dirname(__file__), 'assets', 'image'))
+
+    def _get_english_category_name(self, category_name):
+        """将中文分类名映射为英文目录名。如果在 ProductCategory 枚举中有定义，
+        使用枚举名的小写；否则生成 8 字符 UUID。"""
+        for cat in ProductCategory:
+            if cat.value == category_name:
+                return cat.name.lower()
+        return f"cat_{uuid.uuid4().hex[:8]}"
+
+    def _save_product_image(self, source_path, category_name, product_id):
+        """保存商品图片到分类目录"""
+        base_dir = self._get_image_base_dir()
+
+        # 获取英文分类目录名，避免中文路径导致图片无法显示
+        english_category = self._get_english_category_name(category_name)
+        category_dir = os.path.join(base_dir, english_category)
+        Logger.info(f"创建图片目录: {category_dir}")
+        try:
+            os.makedirs(category_dir, exist_ok=True)
+            Logger.info("图片目录已就绪")
+        except Exception as e:
+            Logger.error(f"创建图片目录失败: {e}")
+            raise
+
+        ext = os.path.splitext(source_path)[1].lower()
+        if not ext or ext not in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+            ext = '.jpg'
+
+        filename = f"{product_id}{ext}"
+        dest_path = os.path.join(category_dir, filename)
+        Logger.info(f"复制图片: source={source_path}, dest={dest_path}")
+
+        self._copy_file_smart(source_path, dest_path)
+        Logger.info("图片复制成功")
+
+        return f"./screens/assets/image/{english_category}/{filename}"
+
+    def _copy_file_smart(self, source, dest):
+        """智能复制文件，支持 Android content URI 和 file URI"""
+        if isinstance(source, str):
+            if source.startswith('content://'):
+                if platform != 'android':
+                    raise ValueError("content URI 只在 Android 上支持")
+                self._copy_android_uri(source, dest)
+                return
+            if source.startswith('file://'):
+                source = source[7:]
+        shutil.copy2(source, dest)
+
+    def _copy_android_uri(self, uri_str, dest_path):
+        """将 Android content URI 复制到本地文件"""
+        try:
+            from jnius import autoclass
+
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            activity = PythonActivity.mActivity
+            Uri = autoclass('android.net.Uri')
+            FileOutputStream = autoclass('java.io.FileOutputStream')
+
+            uri = Uri.parse(uri_str)
+            input_stream = activity.getContentResolver().openInputStream(uri)
+            output_stream = FileOutputStream(dest_path)
+
+            # 使用 Java byte[] 直接读写，避免 Python bytes() 转换问题
+            byte_array = autoclass('[B')(4096)
+
+            while True:
+                length = input_stream.read(byte_array)
+                if length == -1:
+                    break
+                output_stream.write(byte_array, 0, length)
+
+            input_stream.close()
+            output_stream.close()
+        except Exception as e:
+            Logger.error(f"复制 Android URI 失败: {e}")
+            raise
 
     def adjust_stock(self, product):
         """调整库存"""
@@ -1085,7 +1362,7 @@ class InventoryScreen(Screen):
         try:
             input_val = int(self.stock_adjust_input.text)
         except ValueError:
-            MDSnackbar(MDLabel(text="请输入有效的数字", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请输入有效的数字", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         from kivy.app import App
@@ -1101,7 +1378,7 @@ class InventoryScreen(Screen):
             new_stock = product.stock - input_val
 
         if new_stock < 0:
-            MDSnackbar(MDLabel(text="库存不能为负数", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="库存不能为负数", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         if app.inventory_manager.update_product_stock(product.id, new_stock):
@@ -1109,9 +1386,9 @@ class InventoryScreen(Screen):
 
             # 刷新数据
             self.refresh_inventory()
-            MDSnackbar(MDLabel(text="库存更新成功", text_color=(0.2, 0.8, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="库存更新成功", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
         else:
-            MDSnackbar(MDLabel(text="库存更新失败", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="库存更新失败", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
 
     def show_ecit_product_info_dialog(self, product):
         dialog = MDDialog(
@@ -1205,7 +1482,7 @@ class InventoryScreen(Screen):
                 raise ValueError("建议零售价过低")
 
         except ValueError as e:
-            MDSnackbar(MDLabel(text=f"输入错误: {str(e)}", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text=f"输入错误: {str(e)}", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         product.price = price_val
@@ -1232,9 +1509,9 @@ class InventoryScreen(Screen):
 
             # 刷新数据
             self.refresh_inventory()
-            MDSnackbar(MDLabel(text="库存更新成功", text_color=(0.2, 0.8, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="库存更新成功", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
         else:
-            MDSnackbar(MDLabel(text="库存更新失败", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="库存更新失败", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
 
     def show_add_category_dialog(self, *args):
         """显示添加分类对话框"""
@@ -1297,7 +1574,7 @@ class InventoryScreen(Screen):
         icon = self.category_icon_input.text.strip()
 
         if not name:
-            MDSnackbar(MDLabel(text="请输入分类名称", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请输入分类名称", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         from kivy.app import App
@@ -1306,7 +1583,7 @@ class InventoryScreen(Screen):
         # 检查分类是否已存在
         categories = app.inventory_manager.get_categories()
         if any(cat.name == name for cat in categories):
-            MDSnackbar(MDLabel(text="分类已存在", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="分类已存在", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         new_category = app.inventory_manager.add_category(name, icon, description)
@@ -1315,7 +1592,7 @@ class InventoryScreen(Screen):
 
         # 刷新数据
         self.refresh_inventory()
-        MDSnackbar(MDLabel(text=f"分类 '{name}' 添加成功", text_color=(0.2, 0.8, 0.2, 1))).open()
+        MDSnackbar(MDLabel(text=f"分类 '{name}' 添加成功", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
 
     def edit_category(self, category):
         """编辑分类"""
@@ -1381,7 +1658,7 @@ class InventoryScreen(Screen):
 
         dialog.dismiss()
 
-        MDSnackbar(MDLabel(text="编辑功能开发中", text_color=(0.2, 0.6, 0.86, 1))).open()
+        MDSnackbar(MDLabel(text="编辑功能开发中", theme_text_color="Custom", text_color=(0.2, 0.6, 0.86, 1))).open()
 
     def delete_product(self, product):
         """删除商品"""
@@ -1413,9 +1690,9 @@ class InventoryScreen(Screen):
 
             # 刷新数据
             self.refresh_inventory()
-            MDSnackbar(MDLabel(text="商品删除成功", text_color=(0.2, 0.8, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="商品删除成功", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
         else:
-            MDSnackbar(MDLabel(text="商品删除失败", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="商品删除失败", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
 
     def delete_category(self, category):
         """删除分类"""
@@ -1453,7 +1730,7 @@ class InventoryScreen(Screen):
 
         # 刷新数据
         self.refresh_inventory()
-        MDSnackbar(MDLabel(text=f"分类 '{category.name}' 删除成功", text_color=(0.2, 0.8, 0.2, 1)))
+        MDSnackbar(MDLabel(text=f"分类 '{category.name}' 删除成功", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1)))
 
     def go_back(self):
         """返回主页"""

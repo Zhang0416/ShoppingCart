@@ -85,12 +85,21 @@ class ShoppingCart:
         if product.id in self.items:
             self.items[product.id].quantity += quantity
         else:
+            # 解析图片路径为绝对路径，避免 AsyncImage 加载失败
+            image_path = ""
+            if product.images:
+                try:
+                    from kivy.app import App
+                    app = App.get_running_app()
+                    image_path = app.resolve_image_path(product.images[0])
+                except:
+                    image_path = product.images[0]
             self.items[product.id] = CartItem(
                 product_id=product.id,
                 product_name=product.name,
                 price=product.price,
                 quantity=quantity,
-                image=product.images[0] if product.images else "",
+                image=image_path,
                 specifications=specifications or {}
             )
 
@@ -325,17 +334,17 @@ class InventoryManager:
         # 创建商品
         # 这里需要将分类名称转换为 ProductCategory 枚举
         category_name = product_data['category']
-        category_enum = None
+        # category_enum = None
 
-        # 尝试找到对应的枚举
-        for cat in ProductCategory:
-            if cat.value == category_name:
-                category_enum = cat
-                break
+        # # 尝试找到对应的枚举
+        # for cat in ProductCategory:
+        #     if cat.value == category_name:
+        #         category_enum = cat
+        #         break
 
-        # 如果没有找到，使用默认分类
-        if not category_enum:
-            category_enum = ProductCategory.HOME
+        # # 如果没有找到，使用默认分类
+        # if not category_enum:
+        #     category_enum = ProductCategory.HOME
 
         new_product = Product(
             id=product_id,
@@ -344,7 +353,7 @@ class InventoryManager:
             price=float(product_data['price']),
             suggest=float(product_data['suggest']),
             unit=product_data['unit'],
-            category=category_enum,
+            category=category_name,
             stock=int(product_data['stock']),
             images=product_data.get('images', []),
             specifications=product_data.get('specifications', {}),
@@ -378,10 +387,63 @@ class InventoryManager:
     def delete_product(self, product_id: str):
         """删除商品"""
         if product_id in self.db.products:
+            product = self.db.products[product_id]
+            self._delete_product_images(product)
             del self.db.products[product_id]
             self.db.save_product_info()  # 更新存储商品库存数量
             return True
         return False
+
+    def _delete_product_images(self, product):
+        """删除商品关联的本地图片文件"""
+        import os
+        from kivy.utils import platform
+        from kivy.logger import Logger
+
+        for img_path in product.images:
+            if not img_path:
+                continue
+            # 跳过网络图片和默认占位图
+            if img_path.startswith('http://') or img_path.startswith('https://'):
+                continue
+            if 'no_pic' in img_path:
+                continue
+
+            abs_path = None
+            if platform == 'android':
+                from kivy.app import App
+                app = App.get_running_app()
+                if img_path.startswith('./'):
+                    abs_path = os.path.join(app.user_data_dir, img_path[2:])
+                elif not img_path.startswith('/'):
+                    abs_path = os.path.join(app.user_data_dir, img_path)
+                else:
+                    abs_path = img_path
+            else:
+                if img_path.startswith('./'):
+                    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+                    abs_path = os.path.join(project_root, img_path[2:])
+                elif not img_path.startswith('/'):
+                    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+                    abs_path = os.path.join(project_root, img_path)
+                else:
+                    abs_path = img_path
+
+            if abs_path and os.path.exists(abs_path):
+                try:
+                    os.remove(abs_path)
+                    Logger.info(f"删除商品图片: {abs_path}")
+                except Exception as e:
+                    Logger.warning(f"删除商品图片失败: {e}")
+
+                # 尝试清理空目录
+                try:
+                    dir_path = os.path.dirname(abs_path)
+                    if os.path.exists(dir_path) and not os.listdir(dir_path):
+                        os.rmdir(dir_path)
+                        Logger.info(f"删除空图片目录: {dir_path}")
+                except:
+                    pass
 
     def add_category(self, name: str, icon: str = "", description: str = ""):
         """添加分类"""

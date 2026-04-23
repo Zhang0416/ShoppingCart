@@ -74,8 +74,10 @@ class ProductDetailDialog(ModalView):
         # )
 
         # 商品大图
+        from kivy.app import App
+        app = App.get_running_app()
         detail_image = FitImage(
-            source=self.product_data.images[0],
+            source=app.resolve_image_path(self.product_data.images[0]) if self.product_data.images else "",
             size_hint=(None, None),  # 关键：禁用自动缩放
             size=(sp(200), sp(360)),
             pos_hint={"center_x": 0.5, "center_y": 0.5},
@@ -300,7 +302,6 @@ class ProductCard(MDCard, CommonElevationBehavior):
         products = app.db.get_products()
         product = next((p for p in products if p.id == self.product_id), None)
 
-        # print(product)
         if product:
             dialog = ProductDetailDialog(product_data=product)
             dialog.open()

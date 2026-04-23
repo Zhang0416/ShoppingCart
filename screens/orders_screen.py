@@ -130,7 +130,7 @@ class OrdersScreen(Screen):
         app = App.get_running_app()
 
         if not app.current_user:
-            MDSnackbar(MDLabel(text="请先登录", text_color=(0.9, 0.2, 0.2, 1))).open()
+            MDSnackbar(MDLabel(text="请先登录", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
         # 获取当前用户的订单
