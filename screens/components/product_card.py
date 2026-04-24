@@ -8,10 +8,13 @@ from kivymd.uix.button import MDRaisedButton, MDIconButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.chip import MDChip, MDChipText
 from kivymd.uix.fitimage import FitImage
-from kivy.uix.image import Image
+from kivy.uix.image import AsyncImage
+from kivy.uix.relativelayout import RelativeLayout
 from kivymd.uix.list import MDList
 from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.spinner import MDSpinner
 from kivy.metrics import dp, sp
+from kivy.graphics import Color, Ellipse
 
 import re
 
@@ -234,12 +237,39 @@ class ProductCard(MDCard, CommonElevationBehavior):
         # 绑定点击事件
         self.bind(on_release=self.show_product_detail)
 
-        # 商品图片
-        image = Image(
+        # 商品图片容器（图片 + loading spinner）
+        image_container = RelativeLayout(size_hint=(1, 0.5))
+
+        # 异步加载图片
+        image = AsyncImage(
             source=self.image_url,
-            size_hint=(1, 0.5),
-            allow_stretch=True
+            size_hint=(1, 1),
+            pos_hint={'x': 0, 'y': 0},
+            allow_stretch=True,
+            nocache=False  # 启用图片缓存
         )
+
+        # 美化 loading spinner（Material Design 风格，居中，品牌色）
+        spinner = MDSpinner(
+            size_hint=(None, None),
+            size=(dp(32), dp(32)),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            active=True,
+            color=(0.2, 0.6, 0.86, 1),  # 品牌蓝色
+        )
+
+        # 图片加载完成后隐藏 spinner
+        def _on_texture(instance, value):
+            if value:
+                spinner.opacity = 0
+
+        image.bind(texture=_on_texture)
+        # 如果图片已在缓存中，texture 已经有值，bind 不会触发回调，需立即检查
+        if image.texture:
+            spinner.opacity = 0
+
+        image_container.add_widget(image)
+        image_container.add_widget(spinner)
 
         # 商品信息
         info_layout = BoxLayout(orientation='vertical', size_hint=(1, 0.5))
@@ -290,7 +320,7 @@ class ProductCard(MDCard, CommonElevationBehavior):
         # info_layout.add_widget(stock_label)
         info_layout.add_widget(add_btn)
 
-        self.add_widget(image)
+        self.add_widget(image_container)
         self.add_widget(info_layout)
 
     def show_product_detail(self, *args):

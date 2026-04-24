@@ -484,5 +484,10 @@ class CartScreen(Screen):
                 MDLabel(text="购物车为空", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
             ).open()
             return
+        elif self.address_label.text == "选择收件人信息":
+            MDSnackbar(
+                MDLabel(text="收件人信息为空", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
+            ).open()
+            return
 
         app.show_checkout()

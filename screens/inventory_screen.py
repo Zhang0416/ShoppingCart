@@ -17,8 +17,11 @@ from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.snackbar import MDSnackbar
 from kivy.metrics import dp, sp
 from kivy.uix.image import Image
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.widget import Widget
 from kivy.utils import platform
 from kivy.logger import Logger
+from kivy.clock import Clock
 import json
 import os
 import shutil
@@ -210,6 +213,7 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._batch_event = None
         self.build_ui()
 
     def build_ui(self):
@@ -247,9 +251,15 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
         filter_card.add_widget(self.search_input)
         filter_card.add_widget(self.category_filter_btn)
 
-        # 商品列表
+        # 商品列表（两列网格布局，显示更多商品）
         self.product_scroll = MDScrollView()
-        self.product_list = MDList()
+        self.product_list = GridLayout(
+            cols=2,
+            spacing=dp(5),
+            padding=dp(5),
+            size_hint_y=None
+        )
+        self.product_list.bind(minimum_height=self.product_list.setter('height'))
         self.product_scroll.add_widget(self.product_list)
 
         layout.add_widget(filter_card)
@@ -258,15 +268,56 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
         self.add_widget(layout)
 
     def show_category_menu(self, *args):
-        """显示分类菜单"""
+        """显示分类菜单（独立创建，不依赖 InventoryScreen.category_menu）"""
         from kivy.app import App
         app = App.get_running_app()
-        inventory_screen = app.root.get_screen("inventory")
-        if inventory_screen and inventory_screen.category_menu:
-            inventory_screen.category_menu.open()
+
+        categories = app.inventory_manager.get_categories()
+
+        menu_items = [
+            {
+                "text": "全部分类",
+                "viewclass": "OneLineListItem",
+                "on_release": lambda x="全部": self.filter_by_category(x)
+            }
+        ]
+
+        for category in categories:
+            menu_items.append({
+                "text": category.name,
+                "viewclass": "OneLineListItem",
+                "on_release": lambda x=category.name: self.filter_by_category(x)
+            })
+
+        if self.category_filter_btn:
+            self.category_menu = MDDropdownMenu(
+                caller=self.category_filter_btn,
+                items=menu_items,
+                width_mult=dp(4),
+                hor_growth="left",
+            )
+            self.category_menu.open()
+
+    def filter_by_category(self, category_name):
+        """按分类筛选商品"""
+        self.category_filter_btn.text = category_name
+
+        from kivy.app import App
+        app = App.get_running_app()
+        products = app.inventory_manager.get_all_products()
+
+        self.load_products(products, category_filter=category_name)
+
+        if hasattr(self, 'category_menu') and self.category_menu:
+            self.category_menu.dismiss()
 
     def load_products(self, products, category_filter=None):
-        """加载商品"""
+        """加载商品（支持分批加载，避免阻塞主线程）"""
+        # 取消之前的分批加载
+        if self._batch_event:
+            self._batch_event.cancel()
+            self._batch_event = None
+
         self.product_list.clear_widgets()
 
         # 应用分类筛选
@@ -288,128 +339,116 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
             self.product_list.add_widget(empty_label)
             return
 
-        for product in products:
-            # 创建商品卡片
-            product_card = MDCard(
-                orientation='vertical',
-                size_hint=(1, None),
-                height=dp(180),
-                padding=dp(15),
-                spacing=dp(10),
-                elevation=dp(2),
-                radius=[dp(15)],
-                ripple_behavior=True
-            )
+        # 分批添加 widget，Android 每帧只加载 1 个，PC 每帧 2 个
+        # 商品管理卡片已大幅简化：MDRaisedButton -> MDIconButton，去掉 ripple，降低 elevation
+        batch_size = 1 if platform == 'android' else 2
+        index = [0]
 
-            # 商品信息
-            info_layout = MDBoxLayout(
-                orientation='vertical',
-                size_hint=(1, 0.7)
-            )
+        def add_batch(dt):
+            start = index[0]
+            end = min(start + batch_size, len(products))
+            for i in range(start, end):
+                product = products[i]
+                # 创建商品卡片（轻量版，无 ripple，低 elevation）
+                product_card = MDCard(
+                    orientation='vertical',
+                    size_hint=(1, None),
+                    height=dp(136),
+                    padding=dp(8),
+                    spacing=dp(2),
+                    elevation=dp(1),
+                    radius=[dp(10)],
+                )
 
-            # 名称和价格
-            name_price_layout = MDBoxLayout(
-                orientation='horizontal',
-                size_hint=(1, None),
-                height=dp(30)
-            )
+                # 商品名称独占一行
+                name_label = MDLabel(
+                    text=product.name,
+                    theme_text_color="Primary",
+                    font_style="Subtitle1",
+                    size_hint_y=None,
+                    height=dp(32),
+                    halign="center",
+                )
 
-            name_label = MDLabel(
-                text=product.name,
-                theme_text_color="Primary",
-                font_style="Headline6",
-                size_hint=(0.7, 1)
-            )
+                # 分类 小字
+                cate_label = MDLabel(
+                    text=f"{product.category}",
+                    theme_text_color="Secondary",
+                    font_style="Caption",
+                    size_hint_y=None,
+                    height=dp(18),
+                    halign="center"
+                )
 
-            price_label = MDLabel(
-                text=f"¥{product.price:.1f}",
-                theme_text_color="Error",
-                size_hint=(0.3, 1),
-                halign="right"
-            )
+                # 价格、库存放在同一行，价格用紫色，库存用橙色区分，字体加大
+                info_label = MDLabel(
+                    text=f"[color=ff8800]库存 {product.stock}[/color] · [color=8844ff]¥{product.price:.1f}[/color]\n",
+                    markup=True,
+                    theme_text_color="Secondary",
+                    font_style="Body2",
+                    size_hint_y=None,
+                    height=dp(36),
+                    halign="center",
+                )
 
-            name_price_layout.add_widget(name_label)
-            name_price_layout.add_widget(price_label)
+                # 操作按钮（更小的 MDIconButton，颜色柔和不抢眼）
+                actions_layout = MDBoxLayout(
+                    orientation='horizontal',
+                    size_hint=(1, None),
+                    height=dp(28),
+                )
 
-            # 分类和库存
-            category_stock_layout = MDBoxLayout(
-                orientation='horizontal',
-                size_hint=(1, None),
-                height=dp(25)
-            )
+                adjust_btn = MDIconButton(
+                    icon="archive-edit",
+                    theme_text_color="Custom",
+                    text_color=(0.2, 0.2, 0.8, 0.8),
+                    size_hint=(None, None),
+                    size=(dp(24), dp(24)),
+                    pos_hint={'center_y': 0.5},
+                )
+                adjust_btn.bind(on_release=lambda x, p=product: self.adjust_stock(p))
 
-            # 分类标签
-            category_label = MDLabel(
-                text=product.category,
-                theme_text_color="Secondary",
-                size_hint=(0.5, 1),
-                halign="left"
-            )
+                edit_btn = MDIconButton(
+                    icon="pencil",
+                    theme_text_color="Custom",
+                    text_color=(0.2, 0.6, 0.2, 0.8),
+                    size_hint=(None, None),
+                    size=(dp(24), dp(24)),
+                    pos_hint={'center_y': 0.5},
+                )
+                edit_btn.bind(on_release=lambda x, p=product: self.edit_product(p))
 
-            stock_label = MDLabel(
-                text=f"库存：{product.stock}",
-                theme_text_color="Secondary",
-                size_hint=(0.5, 1),
-                halign="right"
-            )
+                delete_btn = MDIconButton(
+                    icon="delete",
+                    theme_text_color="Custom",
+                    text_color=(0.8, 0.3, 0.3, 0.8),
+                    size_hint=(None, None),
+                    size=(dp(24), dp(24)),
+                    pos_hint={'center_y': 0.5},
+                )
+                delete_btn.bind(on_release=lambda x, p=product: self.delete_product(p))
 
-            category_stock_layout.add_widget(category_label)
-            category_stock_layout.add_widget(stock_label)
+                # 使用 Widget 占位实现按钮水平平均分布
+                actions_layout.add_widget(adjust_btn)
+                actions_layout.add_widget(Widget())
+                actions_layout.add_widget(edit_btn)
+                actions_layout.add_widget(Widget())
+                actions_layout.add_widget(delete_btn)
 
-            # 描述
-            desc_label = MDLabel(
-                text=product.description[:50] + "..." if len(product.description) > 50 else product.description,
-                theme_text_color="Hint",
-                font_style="Caption",
-                size_hint_y=None,
-                height=dp(40)
-            )
+                product_card.add_widget(name_label)
+                product_card.add_widget(cate_label)
+                product_card.add_widget(info_label)
+                product_card.add_widget(actions_layout)
 
-            info_layout.add_widget(name_price_layout)
-            info_layout.add_widget(category_stock_layout)
-            info_layout.add_widget(desc_label)
+                self.product_list.add_widget(product_card)
 
-            # 操作按钮
-            actions_layout = MDBoxLayout(
-                orientation='horizontal',
-                size_hint=(1, None),
-                height=dp(40),
-                spacing=dp(10)
-            )
+            index[0] = end
+            if index[0] >= len(products):
+                if self._batch_event:
+                    self._batch_event.cancel()
+                self._batch_event = None
 
-            # 调整库存按钮
-            adjust_btn = MDRaisedButton(
-                text="调整库存",
-                size_hint=(0.33, 1),
-                md_bg_color=(0.2, 0.8, 0.6, 1)
-            )
-            adjust_btn.bind(on_release=lambda x, p=product: self.adjust_stock(p))
-
-            # 编辑按钮
-            edit_btn = MDRaisedButton(
-                text="编辑",
-                size_hint=(0.33, 1),
-                md_bg_color=(0.2, 0.4, 0.2, 1)
-            )
-            edit_btn.bind(on_release=lambda x, p=product: self.edit_product(p))
-
-            # 删除按钮
-            delete_btn = MDRaisedButton(
-                text="删除",
-                # theme_text_color="Error",
-                size_hint=(0.33, 1),
-                md_bg_color=(0.6, 0.4, 0.6, 1)
-            )
-            delete_btn.bind(on_release=lambda x, p=product: self.delete_product(p))
-
-            actions_layout.add_widget(adjust_btn)
-            actions_layout.add_widget(edit_btn)
-            actions_layout.add_widget(delete_btn)
-
-            product_card.add_widget(info_layout)
-            product_card.add_widget(actions_layout)
-
-            self.product_list.add_widget(product_card)
+        self._batch_event = Clock.schedule_interval(add_batch, 0)
 
     def adjust_stock(self, product):
         """调整库存"""
@@ -575,11 +614,11 @@ class InventoryScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "inventory"
+        self._products_cache = None
+        self._categories_cache = None
+        self._refresh_event = None
+        self._current_tab_text = "统计概览"
         self._build_ui()
-        # self.category_menu = None
-        # self.stats_tab = None
-        # self.products_tab = None
-        # self.categories_tab = None
 
     def _build_ui(self):
         # 主布局
@@ -611,6 +650,9 @@ class InventoryScreen(Screen):
         self.tabs.add_widget(self.products_tab)
         self.tabs.add_widget(self.categories_tab)
 
+        # 绑定标签页切换事件
+        self.tabs.bind(on_tab_switch=self.on_tab_switch)
+
         main_layout.add_widget(self.toolbar)
         main_layout.add_widget(self.tabs)
 
@@ -619,32 +661,73 @@ class InventoryScreen(Screen):
     def on_enter(self):
         """进入页面时加载数据"""
         self.products_tab.category_filter_btn.text = "选择分类"  # 默认显示
-        self.refresh_inventory()
+        # 清除缓存，因为从其他页面返回时数据可能已经变化
+        self._products_cache = None
+        self._categories_cache = None
+        # 取消之前的延迟刷新
+        if self._refresh_event:
+            self._refresh_event.cancel()
+        # 延迟一帧刷新当前标签页，让页面框架先渲染
+        self._refresh_event = Clock.schedule_once(
+            lambda dt: self.refresh_inventory(tab_only=self._current_tab_text), 0
+        )
 
-    def refresh_inventory(self):
-        """刷新库存数据"""
+    def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label, tab_text):
+        """标签页切换时按需刷新数据"""
+        self._current_tab_text = tab_text
+        # 如果缓存为空（首次进入该标签页或数据已清除），需要加载数据
+        if self._products_cache is None or self._categories_cache is None:
+            self.refresh_inventory(tab_only=tab_text)
+        else:
+            # 使用缓存数据直接刷新当前标签页 UI
+            if tab_text == "统计概览" and self.stats_tab:
+                self.stats_tab.update_stats(self._products_cache)
+            elif tab_text == "商品管理" and self.products_tab:
+                self.products_tab.load_products(self._products_cache)
+            elif tab_text == "分类管理" and self.categories_tab:
+                self.categories_tab.load_categories(
+                    self._categories_cache, self._products_cache or []
+                )
+
+    def refresh_inventory(self, tab_only=None, clear_cache=True):
+        """Refresh inventory data.
+        :param tab_only: only refresh specified tab, None means refresh all
+        :param clear_cache: whether to clear cache and re-read from JSON
+        """
         from kivy.app import App
         app = App.get_running_app()
 
-        # 获取数据
-        products = app.inventory_manager.get_all_products()
-        categories = app.inventory_manager.get_categories()
+        if clear_cache:
+            self._products_cache = None
+            self._categories_cache = None
+
+        # Read data from JSON only once, then cache
+        if self._products_cache is None:
+            self._products_cache = app.inventory_manager.get_all_products()
+        if self._categories_cache is None:
+            self._categories_cache = app.inventory_manager.get_categories()
+
+        products = self._products_cache
+        categories = self._categories_cache
 
         # 更新统计标签页
-        if self.stats_tab:
+        if (tab_only is None or tab_only == "统计概览") and self.stats_tab:
             self.stats_tab.update_stats(products)
 
         # 更新商品管理标签页
-        if self.products_tab:
+        if (tab_only is None or tab_only == "商品管理") and self.products_tab:
             self.products_tab.load_products(products)
 
         # 更新分类管理标签页
-        if self.categories_tab:
+        if (tab_only is None or tab_only == "分类管理") and self.categories_tab:
             self.categories_tab.load_categories(categories, products)
 
         # 设置分类菜单
-        self.setup_category_menu()
-        MDSnackbar(MDLabel(text="库存数据已刷新", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
+        if tab_only is None or tab_only == "商品管理":
+            self.setup_category_menu()
+
+        if tab_only is None:
+            MDSnackbar(MDLabel(text="库存数据已刷新", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
 
     def setup_category_menu(self):
         """设置分类菜单"""

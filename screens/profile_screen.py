@@ -818,6 +818,8 @@ class ProfileScreen(Screen):
                  "开发者: ShoppingCart Team\n"
                  "联系方式: support@shoppingcart.com\n"
                  "官方网站: https://www.shoppingcart.com",
+            size_hint_x=None,
+            width=dp(360),
             buttons=[
                 MDFlatButton(text="确定", on_release=lambda x: dialog.dismiss())
             ]
@@ -830,6 +832,8 @@ class ProfileScreen(Screen):
         dialog = MDDialog(
             title="帮助中心",
             type="custom",
+            size_hint_x=None,
+            width=dp(360),
             content_cls=MDBoxLayout(orientation='vertical',
                                     spacing=dp(10),
                                     size_hint_y=None,
@@ -883,6 +887,8 @@ class ProfileScreen(Screen):
         dialog = MDDialog(
             title="反馈建议",
             type="custom",
+            size_hint_x=None,
+            width=dp(360),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),

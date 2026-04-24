@@ -12,6 +12,7 @@ from kivymd.uix.behaviors import CommonElevationBehavior
 from kivymd.uix.card import MDCard
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.metrics import dp, sp
+from kivy.clock import Clock
 
 from .assets.config_chinese import CHINESE_FONT_NAME
 from .components.models import ProductCategory
@@ -22,6 +23,8 @@ class ProductScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "products"
+        self._batch_event = None
+        self._cached_products = None
         self._build_ui()
 
     def _build_ui(self):
@@ -186,38 +189,81 @@ class ProductScreen(Screen):
     def on_enter(self):
         """进入屏幕时加载商品"""
         self.category_filter_btn.text = "选择分类"  # 默认显示
-        self.load_products()
+        # 清除缓存，从其他页面返回时数据可能已经变化
+        self._cached_products = None
+        # 延迟一帧加载，让页面框架先渲染，减少卡顿感
+        Clock.schedule_once(lambda dt: self.load_products(), 0)
+
+    def _load_products_batch(self, products):
+        """分批添加商品卡片，避免一次性创建大量 widget 阻塞主线程"""
+        # 取消之前的分批加载
+        if self._batch_event:
+            self._batch_event.cancel()
+            self._batch_event = None
+
+        self.product_grid.clear_widgets()
+
+        if not products:
+            return
+
+        from kivy.app import App
+        app = App.get_running_app()
+        # Android 低端设备每帧少加载几个，PC 可以多加载
+        from kivy.utils import platform
+        batch_size = 3 if platform == 'android' else 6
+        index = [0]
+
+        def add_batch(dt):
+            start = index[0]
+            end = min(start + batch_size, len(products))
+            for i in range(start, end):
+                product = products[i]
+                card = ProductCard(
+                    product_id=product.id,
+                    name=product.name,
+                    description=product.description,
+                    price=product.price,
+                    image_url=app.resolve_image_path(product.images[0]) if product.images else "",
+                    rating=product.rating,
+                    stock=product.stock
+                )
+                self.product_grid.add_widget(card)
+            index[0] = end
+            if index[0] >= len(products):
+                if self._batch_event:
+                    self._batch_event.cancel()
+                self._batch_event = None
+
+        # 立即执行第一帧，然后每 0 秒（下一帧）继续
+        self._batch_event = Clock.schedule_interval(add_batch, 0)
 
     def load_products(self, category=None, featured=False):
-        """加载商品"""
+        """加载商品（支持缓存和分批加载）"""
         from kivy.app import App
         app = App.get_running_app()
 
-        # 清空现有商品
-        self.product_grid.clear_widgets()
         # 更新购物车徽章显示
         self.update_badge_color_text(app.cart.item_count)
 
-        # 获取商品列表
-        products = app.db.get_products(category=category, featured=featured)
+        # 使用缓存避免重复读取 JSON
+        if self._cached_products is None:
+            self._cached_products = list(app.db.get_products())
+        products = self._cached_products[:]
+
+        # 应用分类筛选（与原 db.get_products 行为一致：
+        # category 和 featured 独立处理，featured=True 时忽略 category 筛选）
+        if category and category != "全部":
+            products = [p for p in products if p.category == category]
+        if featured:
+            products = self._cached_products[:]
+            products = [p for p in products if getattr(p, 'is_featured', False)]
 
         # 应用搜索筛选
         search_text = self.search_input.text.strip().lower()
         if search_text:
             products = [p for p in products if search_text in p.name.lower() or search_text in p.description.lower()]
 
-        for product in products:
-            app = App.get_running_app()
-            card = ProductCard(
-                product_id=product.id,
-                name=product.name,
-                description=product.description,
-                price=product.price,
-                image_url=app.resolve_image_path(product.images[0]) if product.images else "",
-                rating=product.rating,
-                stock=product.stock
-            )
-            self.product_grid.add_widget(card)
+        self._load_products_batch(products)
 
     def show_category_menu(self, *args):
         """获取分类菜单"""
@@ -273,30 +319,21 @@ class ProductScreen(Screen):
         from kivy.app import App
         app = App.get_running_app()
 
-        # 清空现有商品
-        self.product_grid.clear_widgets()
+        # 更新购物车徽章显示
+        self.update_badge_color_text(app.cart.item_count)
 
-        # 获取商品列表
-        products = app.db.get_products()
+        # 使用缓存避免重复读取 JSON
+        if self._cached_products is None:
+            self._cached_products = list(app.db.get_products())
+        products = self._cached_products[:]
+
         search_text = self.search_input.text.strip().lower()
-
         filtered_products = [
             p for p in products
             if search_text in str(p.name).lower() or search_text in str(p.category).lower()
         ]
 
-        for product in filtered_products:
-            app = App.get_running_app()
-            card = ProductCard(
-                product_id=product.id,
-                name=product.name,
-                description=product.description,
-                price=product.price,
-                image_url=app.resolve_image_path(product.images[0]) if product.images else "",
-                rating=product.rating,
-                stock=product.stock
-            )
-            self.product_grid.add_widget(card)
+        self._load_products_batch(filtered_products)
 
     def update_badge_color_text(self, val):
         if val > 0:

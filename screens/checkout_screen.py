@@ -193,7 +193,7 @@ class CheckoutScreen(Screen):
         submit_btn = MDRaisedButton(
             text="提交订单",
             size_hint=(1, None),
-            height=dp(100),
+            height=dp(150),
             md_bg_color=(0.2, 0.8, 0.4, 1),
             pos_hint={'center_x': 0.5}
         )
