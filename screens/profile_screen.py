@@ -6,7 +6,7 @@ from kivymd.uix.chip import MDChip
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.list import (MDList, OneLineListItem, OneLineIconListItem, TwoLineListItem, ThreeLineListItem,
-                             IconLeftWidget, IconRightWidget, ThreeLineAvatarIconListItem)
+                             IconLeftWidget, IconRightWidget, ThreeLineAvatarIconListItem, TwoLineIconListItem)
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.selectioncontrol import MDSwitch
 from kivymd.uix.snackbar import MDSnackbar
@@ -14,6 +14,7 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.toolbar import MDTopAppBar
 from kivy.logger import Logger
 from kivy.metrics import dp, sp
+from kivy.clock import Clock
 from datetime import datetime
 from pathlib import Path
 import json
@@ -145,7 +146,18 @@ class ProfileScreen(Screen):
             text="数据管理",
             on_release=self.show_data_management
         )
-        data_management_item.add_widget(IconLeftWidget(icon="database"))
+        data_management_item.add_widget(
+            IconLeftWidget(icon="database", theme_text_color="Custom", text_color=(0.3, 0.2, 0.6, 1))
+        )
+
+        # 连接蓝牙打印机
+        self.bluetooth_printer_item = OneLineIconListItem(
+            text="连接打印机",
+            on_release=self.show_bluetooth_printer_dialog
+        )
+        self.bluetooth_printer_item.add_widget(
+            IconLeftWidget(icon="printer", theme_text_color="Custom", text_color=(0.2, 0.6, 0.1, 1))
+        )
 
         # 关于与帮助区
         about_section = OneLineListItem(
@@ -189,9 +201,10 @@ class ProfileScreen(Screen):
         self.menu_list.add_widget(address_item)
         self.menu_list.add_widget(logout_item)
         self.menu_list.add_widget(settings_section)
+        self.menu_list.add_widget(data_management_item)
+        self.menu_list.add_widget(self.bluetooth_printer_item)
         self.menu_list.add_widget(notification_item)
         self.menu_list.add_widget(theme_item)
-        self.menu_list.add_widget(data_management_item)
         self.menu_list.add_widget(about_section)
         self.menu_list.add_widget(about_item)
         self.menu_list.add_widget(help_item)
@@ -992,3 +1005,343 @@ class ProfileScreen(Screen):
         from kivy.app import App
         app = App.get_running_app()
         app.show_home()
+
+
+    # ==================== 蓝牙打印机 ====================
+
+    def show_bluetooth_printer_dialog(self, *args):
+        """显示蓝牙打印机连接对话框"""
+        from kivy.app import App
+        app = App.get_running_app()
+        mgr = app.bluetooth_printer_manager
+
+        content = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(10),
+            size_hint_y=None,
+            height=dp(480)
+        )
+
+        # 状态卡片（动态高度，文字过长自动换行扩展）
+        self._printer_status_card = MDCard(
+            orientation='vertical',
+            size_hint=(1, None),
+            padding=dp(10),
+            spacing=dp(5),
+            elevation=dp(2),
+            radius=[dp(10)]
+        )
+        self._printer_status_card.bind(minimum_height=self._printer_status_card.setter('height'))
+
+        self._printer_status_label = MDLabel(
+            text="状态: 未连接",
+            theme_text_color="Secondary",
+            font_style="Subtitle1",
+            size_hint_y=None
+        )
+        self._printer_status_label.bind(
+            width=lambda instance, value: setattr(instance, 'text_size', (value, None)),
+            texture_size=lambda instance, value: setattr(instance, 'height', value[1])
+        )
+
+        self._printer_device_label = MDLabel(
+            text="设备: 无",
+            theme_text_color="Hint",
+            font_style="Caption",
+            size_hint_y=None
+        )
+        self._printer_device_label.bind(
+            width=lambda instance, value: setattr(instance, 'text_size', (value, None)),
+            texture_size=lambda instance, value: setattr(instance, 'height', value[1])
+        )
+
+        self._printer_status_card.add_widget(self._printer_status_label)
+        self._printer_status_card.add_widget(self._printer_device_label)
+        content.add_widget(self._printer_status_card)
+
+        # 操作按钮行
+        actions_row = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(50),
+            spacing=dp(10)
+        )
+        self._scan_btn = MDRaisedButton(
+            text="扫描设备",
+            size_hint=(0.5, 1),
+            md_bg_color=(0.2, 0.6, 0.86, 1)
+        )
+        self._scan_btn.bind(on_release=self._start_scan_printers)
+        self._disconnect_btn = MDRaisedButton(
+            text="断开连接",
+            size_hint=(0.5, 1),
+            md_bg_color=(0.9, 0.3, 0.3, 1)
+        )
+        self._disconnect_btn.bind(on_release=self._disconnect_printer)
+        actions_row.add_widget(self._scan_btn)
+        actions_row.add_widget(self._disconnect_btn)
+        content.add_widget(actions_row)
+
+        # 设备列表
+        self._printer_scroll = MDScrollView(size_hint=(1, 1))
+        self._printer_device_list = MDList(size_hint_y=None)
+        self._printer_device_list.bind(minimum_height=self._printer_device_list.setter('height'))
+        self._printer_scroll.add_widget(self._printer_device_list)
+        content.add_widget(self._printer_scroll)
+
+        self.bluetooth_printer_dialog = MDDialog(
+            title="连接蓝牙打印机",
+            type="custom",
+            size_hint_x=None,
+            width=dp(360),
+            content_cls=content,
+            buttons=[
+                MDFlatButton(
+                    text="关闭",
+                    on_release=lambda x: self.bluetooth_printer_dialog.dismiss()
+                )
+            ]
+        )
+        self.bluetooth_printer_dialog.ids.title.font_name = CHINESE_FONT_NAME
+
+        # 注册状态回调
+        mgr.set_state_callback(self._on_printer_state_changed)
+
+        # 初始化显示当前状态
+        self._update_printer_dialog_state(mgr.connection_state, mgr.connected_device, mgr.last_error)
+
+        self.bluetooth_printer_dialog.open()
+
+    def _on_printer_state_changed(self, state, device_info, error_msg):
+        """蓝牙打印机状态变更回调（在主线程执行）"""
+        def _update(dt):
+            self._update_printer_dialog_state(state, device_info, error_msg)
+        Clock.schedule_once(_update, 0)
+
+    def _update_printer_dialog_state(self, state, device_info, error_msg):
+        """更新对话框中的状态显示"""
+        state_text_map = {
+            "disconnected": "状态: 未连接",
+            "scanning": "状态: 正在扫描...",
+            "connecting": "状态: 正在连接...",
+            "connected": "状态: 已连接",
+            "error": f"状态: 错误 - {error_msg or '未知错误'}",
+        }
+        status_text = state_text_map.get(state, f"状态: {state}")
+        self._printer_status_label.text = status_text
+
+        if device_info and state == "connected":
+            self._printer_device_label.text = f"设备: {device_info.get('name', 'Unknown')} ({device_info.get('address', '')})"
+            self._printer_device_label.theme_text_color = "Custom"
+            self._printer_device_label.text_color = (0.2, 0.8, 0.2, 1)
+        elif state == "scanning":
+            self._printer_device_label.text = "正在搜索附近的蓝牙设备..."
+            self._printer_device_label.theme_text_color = "Hint"
+        else:
+            self._printer_device_label.text = "设备: 无"
+            self._printer_device_label.theme_text_color = "Hint"
+
+        # 按钮状态
+        self._scan_btn.disabled = (state == "scanning" or state == "connecting")
+        self._disconnect_btn.disabled = (state != "connected")
+
+    def _start_scan_printers(self, *args):
+        """开始扫描蓝牙打印机设备"""
+        from kivy.app import App
+        from kivy.utils import platform
+        app = App.get_running_app()
+        mgr = app.bluetooth_printer_manager
+
+        self._printer_device_list.clear_widgets()
+        self._printer_device_list.add_widget(
+            OneLineListItem(text="正在准备扫描...", theme_text_color="Hint")
+        )
+
+        def _do_scan():
+            """执行实际扫描"""
+            # 检查蓝牙是否开启（仅 Android）
+            if platform == 'android':
+                bt_enabled = self._is_android_bluetooth_enabled()
+                if not bt_enabled:
+                    self._printer_device_list.clear_widgets()
+                    self._printer_device_list.add_widget(
+                        OneLineListItem(
+                            text="请先开启手机蓝牙后再扫描",
+                            theme_text_color="Error"
+                        )
+                    )
+                    MDSnackbar(
+                        MDLabel(text="请先开启手机蓝牙", theme_text_color="Custom",
+                                text_color=(0.9, 0.2, 0.2, 1))
+                    ).open()
+                    return
+
+            self._printer_device_list.clear_widgets()
+            self._printer_device_list.add_widget(
+                OneLineListItem(text="正在扫描...", theme_text_color="Hint")
+            )
+
+            def _on_found(devices):
+                self._printer_device_list.clear_widgets()
+                if not devices:
+                    self._printer_device_list.add_widget(
+                        OneLineListItem(
+                            text="未发现已配对设备\n请先在系统设置中配对打印机",
+                            theme_text_color="Hint"
+                        )
+                    )
+                    return
+                for dev in devices:
+                    name = dev.get('name', 'Unknown')
+                    addr = dev.get('address', '')
+                    paired_str = " [已配对]" if dev.get('paired') else ""
+                    item = TwoLineIconListItem(
+                        text=f"{name}{paired_str}",
+                        secondary_text=addr,
+                        on_release=lambda x, d=dev: self._connect_printer(d)
+                    )
+                    item.add_widget(IconLeftWidget(icon="printer"))
+                    self._printer_device_list.add_widget(item)
+
+            mgr.scan_devices(on_devices_found=_on_found)
+
+        # Android 需要先请求运行时权限
+        if platform == 'android':
+            self._request_bluetooth_permissions(on_granted=_do_scan)
+        else:
+            _do_scan()
+
+    def _request_bluetooth_permissions(self, on_granted):
+        """请求 Android 蓝牙相关运行时权限"""
+        from kivy.utils import platform
+        if platform != 'android':
+            on_granted()
+            return
+
+        try:
+            from android.permissions import request_permissions
+            try:
+                from android.permissions import check_permission
+            except ImportError:
+                check_permission = None
+            from jnius import autoclass
+            # Build.VERSION 是静态嵌套类，pyjnius 中需用 $ 访问
+            Build_VERSION = autoclass('android.os.Build$VERSION')
+            sdk_int = Build_VERSION.SDK_INT
+
+            # Android 12+ (API 31) 需要 BLUETOOTH_SCAN / BLUETOOTH_CONNECT
+            # Android 6-11 需要 ACCESS_FINE_LOCATION 才能扫描
+            if sdk_int >= 31:
+                perms = [
+                    'android.permission.BLUETOOTH_SCAN',
+                    'android.permission.BLUETOOTH_CONNECT',
+                ]
+            else:
+                perms = [
+                    'android.permission.ACCESS_FINE_LOCATION',
+                ]
+
+            # 检查是否已有权限
+            all_granted = True
+            if check_permission:
+                for perm in perms:
+                    if not check_permission(perm):
+                        all_granted = False
+                        break
+            else:
+                all_granted = False
+
+            if all_granted:
+                on_granted()
+                return
+
+            def _callback(*args):
+                # 兼容不同版本 p4a 的回调格式: (permissions, grants) 或 (permissions_dict,)
+                granted = False
+                if len(args) == 2:
+                    permissions, grants = args
+                    granted = all(grants)
+                elif len(args) == 1 and isinstance(args[0], dict):
+                    granted = all(args[0].values())
+                elif len(args) == 1 and isinstance(args[0], (list, tuple)):
+                    granted = all(args[0])
+
+                if granted:
+                    on_granted()
+                else:
+                    self._printer_device_list.clear_widgets()
+                    self._printer_device_list.add_widget(
+                        OneLineListItem(
+                            text="权限被拒绝，无法扫描蓝牙设备",
+                            theme_text_color="Error"
+                        )
+                    )
+                    MDSnackbar(
+                        MDLabel(text="需要蓝牙权限才能扫描设备", theme_text_color="Custom",
+                                text_color=(0.9, 0.2, 0.2, 1))
+                    ).open()
+
+            request_permissions(perms, _callback)
+        except Exception as e:
+            Logger.error(f"BluetoothPrinter: 请求权限失败: {e}")
+            # 降级处理：直接尝试扫描
+            on_granted()
+
+    def _is_android_bluetooth_enabled(self):
+        """检查 Android 蓝牙是否开启"""
+        try:
+            from jnius import autoclass
+            BluetoothAdapter = autoclass('android.bluetooth.BluetoothAdapter')
+            adapter = BluetoothAdapter.getDefaultAdapter()
+            return adapter is not None and adapter.isEnabled()
+        except Exception as e:
+            Logger.error(f"BluetoothPrinter: 检查蓝牙状态失败: {e}")
+            return False
+
+    def _connect_printer(self, device_info):
+        """连接选中的蓝牙打印机"""
+        from kivy.app import App
+        app = App.get_running_app()
+        mgr = app.bluetooth_printer_manager
+
+        self._printer_device_list.clear_widgets()
+        self._printer_device_list.add_widget(
+            OneLineListItem(
+                text=f"正在连接 {device_info.get('name', '')}...",
+                theme_text_color="Hint"
+            )
+        )
+
+        def _on_result(success, error_msg):
+            if not success:
+                self._printer_device_list.clear_widgets()
+                self._printer_device_list.add_widget(
+                    OneLineListItem(
+                        text=f"连接失败: {error_msg or '未知错误'}",
+                        theme_text_color="Error"
+                    )
+                )
+            else:
+                self._printer_device_list.clear_widgets()
+                self._printer_device_list.add_widget(
+                    OneLineListItem(
+                        text=f"已连接: {device_info.get('name', '')}",
+                        theme_text_color="Custom"
+                    )
+                )
+                # 更新个人中心菜单项文字
+                self.bluetooth_printer_item.text = f"蓝牙打印机: {device_info.get('name', '已连接')}"
+
+        mgr.connect(device_info, on_result=_on_result)
+
+    def _disconnect_printer(self, *args):
+        """断开蓝牙打印机连接"""
+        from kivy.app import App
+        app = App.get_running_app()
+        mgr = app.bluetooth_printer_manager
+        mgr.disconnect()
+        self.bluetooth_printer_item.text = "连接蓝牙打印机"
+        self._printer_device_list.clear_widgets()
+        self._printer_device_list.add_widget(
+            OneLineListItem(text="已断开连接", theme_text_color="Hint")
+        )

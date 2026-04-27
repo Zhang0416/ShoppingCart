@@ -188,6 +188,24 @@ class CartItemWidget(MDBoxLayout):
         unit_price = self.discount_price if self.discount_price is not None else self.price
         self.subtotal_label.text = f"小计: ¥{unit_price * self.quantity:.1f}"
 
+    _UNSET = object()
+
+    def refresh_display(self, quantity=None, discount_price=_UNSET):
+        """增量刷新显示，不重建 widget
+
+        Args:
+            quantity: 新数量，为 None 时不更新
+            discount_price: 新折扣价，使用 _UNSET 哨兵表示"不更新"，
+                           传入 None 表示清空折扣价
+        """
+        if quantity is not None and quantity != self.quantity:
+            self.quantity = quantity
+            self.quantity_field.text = str(quantity)
+        if discount_price is not CartItemWidget._UNSET:
+            self.discount_price = discount_price
+            self.discount_field.text = f"{discount_price:.1f}" if discount_price is not None else ""
+        self.update_subtotal_display()
+
     def set_discount_price(self, *args):
         """设置折扣价"""
         from kivymd.uix.snackbar import MDSnackbar

@@ -8,6 +8,7 @@ from kivy.utils import platform
 
 from screens.assets.config_chinese import register_chinese_font, set_kivymd_global_font
 from screens.components.models import ShoppingCart, OrderManager, InventoryManager, Database
+from screens.components.bluetooth_printer import BluetoothPrinterManager
 from screens.login_screen import LoginScreen, UserManager
 from screens.home_screen import HomeScreen
 from screens.product_screen import ProductScreen
@@ -36,6 +37,8 @@ class ShoppingCartApp(MDApp):
         self.user_manager = UserManager()
         self.user_info = None
         self.current_user = None
+        # 蓝牙打印机管理器
+        self.bluetooth_printer_manager = BluetoothPrinterManager()
 
     def build(self):
         """构建应用"""
@@ -137,6 +140,8 @@ class ShoppingCartApp(MDApp):
 
     def add_to_cart(self, product_id):
         """添加商品到购物车"""
+        from kivy.clock import Clock
+
         product = self.db.get_product(product_id)
         if product:
             if product.stock <= 0:
@@ -146,12 +151,18 @@ class ShoppingCartApp(MDApp):
                 return False
 
             self.cart.add_item(product, 1)
-            # 更新购物车界面
-            cart_screen = self.screen_manager.get_screen("cart")
-            cart_screen.update_cart()
-            # 更新商品界面 购物车徽章
+
+            # 更新商品界面 购物车徽章（轻量级，同步执行）
             product_screen = self.screen_manager.get_screen("products")
             product_screen.update_badge_color_text(self.cart.item_count)
+
+            # 购物车界面更新延迟到下一帧：
+            # 1. 购物车页面大概率不在当前屏幕，不需要同步阻塞
+            # 2. 避免在商品页面点击时同步重建大量 widget 导致卡顿
+            def _update_cart_ui(dt):
+                cart_screen = self.screen_manager.get_screen("cart")
+                cart_screen.update_cart()
+            Clock.schedule_once(_update_cart_ui, 0)
 
             # 显示成功消息
             MDSnackbar(

@@ -13,7 +13,6 @@ from kivymd.uix.scrollview import MDScrollView
 from kivy.metrics import dp
 
 from .assets.config_chinese import CHINESE_FONT_NAME
-from .orders_screen import OrdersScreen
 
 
 class CheckoutScreen(Screen):
@@ -363,7 +362,10 @@ class CheckoutScreen(Screen):
 
     def view_order(self, order):
         """ 调用 订单管理界面 的显示详情函数 """
-        OrdersScreen().show_order_detail(order, has_delete=False)  # 仅供查看，不包含删除按钮
+        from kivy.app import App
+        app = App.get_running_app()
+        orders_screen = app.screen_manager.get_screen("orders")
+        orders_screen.show_order_detail(order, has_delete=False)  # 仅供查看，不包含删除按钮
 
     def generate_order_id(self, length: int = 40) -> str:
         """

@@ -445,5 +445,56 @@
     "status": "delivered",
     "created_at": "2026-04-22 10:56:15",
     "updated_at": ""
+  },
+  {
+    "order_id": "6b6b79e3a6e919337ed194ef25b0692010b7a0bb",
+    "user_name": "demo",
+    "user_phone": "13800138000",
+    "items": [
+      {
+        "product_id": "p003",
+        "product_name": "男士休闲衬衫",
+        "price": 299.0,
+        "discount_price": 280.0,
+        "quantity": 1,
+        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/demo/tshirtman.JPEG",
+        "specifications": {}
+      },
+      {
+        "product_id": "p008",
+        "product_name": "无线耳机",
+        "price": 599.0,
+        "discount_price": 500.0,
+        "quantity": 1,
+        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/no_pic.jpg",
+        "specifications": {}
+      },
+      {
+        "product_id": "p010",
+        "product_name": "华为FreeBuds Pro 4",
+        "price": 1499.0,
+        "discount_price": 1499.0,
+        "quantity": 1,
+        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/no_pic.jpg",
+        "specifications": {}
+      },
+      {
+        "product_id": "p009",
+        "product_name": "联想小新Pad Pro 2025",
+        "price": 2299.0,
+        "discount_price": 2299.0,
+        "quantity": 1,
+        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/no_pic1.jpg",
+        "specifications": {}
+      }
+    ],
+    "subtotal": 4696.0,
+    "discount": 118.0,
+    "total": 4578.0,
+    "address": "ddd~13865321245~北京市石景山区环湖中路",
+    "payment_method": "cash",
+    "status": "delivered",
+    "created_at": "2026-04-27 19:14:47",
+    "updated_at": ""
   }
 ]

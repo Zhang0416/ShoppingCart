@@ -97,14 +97,12 @@ class CartScreen(Screen):
 
         # 导入历史订单按钮
         self.import_btn = MDRaisedButton(
-            text="历史折扣",
+            text="导入折扣",
             size_hint=(0.3, 1),
-            md_bg_color=(0.9, 0.5, 0.1, 1)
+            md_bg_color=(0.5, 0.5, 0.5, 1)  # 初始灰色（未选择收货人）
         )
-        # self.import_btn._lbl.max_lines = 2
-        # self.import_btn._lbl.shorten = False
-        # self.import_btn._lbl.halign = 'center'
         self.import_btn.bind(on_release=self.show_import_orders)
+        self._has_selected_address = False
 
         # 结算按钮
         self.checkout_btn = MDRaisedButton(
@@ -139,15 +137,17 @@ class CartScreen(Screen):
         self.update_cart()
 
     def update_cart(self):
-        """更新购物车显示"""
+        """更新购物车显示——增量更新，避免全量重建 widget"""
         from kivy.app import App
+        from .components.cart_item import CartItemWidget
         app = App.get_running_app()
-
-        # 清空现有内容
-        self.cart_layout.clear_widgets()
 
         # 检查购物车是否为空
         if app.cart.item_count == 0:
+            # 清空所有 widget 和缓存
+            self.cart_layout.clear_widgets()
+            if hasattr(self, '_cart_item_widgets'):
+                self._cart_item_widgets.clear()
             self.empty_label.opacity = 1
             self.total_label.text = " 购物车为空 "
             self.checkout_btn.text = "去选购"
@@ -158,21 +158,34 @@ class CartScreen(Screen):
             self.address_card.height = 0
             self.address_card.disabled = True
             return
-        else:
-            self.checkout_btn.text = "去结算"
-            self.checkout_btn.bind(on_release=self.checkout)
-            self.checkout_btn.unbind(on_release=self.go_back)
-            self.import_btn.disabled = False
-            self.address_card.opacity = 1
-            self.address_card.height = dp(80)
-            self.address_card.disabled = False
+
+        # 初始化 widget 缓存字典（product_id -> CartItemWidget）
+        if not hasattr(self, '_cart_item_widgets'):
+            self._cart_item_widgets = {}
 
         self.empty_label.opacity = 0
+        self.checkout_btn.text = "去结算"
+        self.checkout_btn.bind(on_release=self.checkout)
+        self.checkout_btn.unbind(on_release=self.go_back)
+        self.import_btn.disabled = False
+        self.address_card.opacity = 1
+        self.address_card.height = dp(80)
+        self.address_card.disabled = False
 
-        # 添加购物车项
-        for item in app.cart.items.values():
-            from .components.cart_item import CartItemWidget
-            cart_item = CartItemWidget(
+        current_ids = set(app.cart.items.keys())
+        cached_ids = set(self._cart_item_widgets.keys())
+
+        # 1. 移除已不在购物车中的 widget（避免遍历中修改字典）
+        removed_ids = cached_ids - current_ids
+        for pid in removed_ids:
+            widget = self._cart_item_widgets.pop(pid)
+            self.cart_layout.remove_widget(widget)
+
+        # 2. 新增商品：创建 widget 并加入布局
+        added_ids = current_ids - cached_ids
+        for pid in added_ids:
+            item = app.cart.items[pid]
+            widget = CartItemWidget(
                 product_id=item.product_id,
                 name=item.product_name,
                 price=item.price,
@@ -180,7 +193,17 @@ class CartScreen(Screen):
                 image_url=item.image,
                 discount_price=item.discount_price
             )
-            self.cart_layout.add_widget(cart_item)
+            self.cart_layout.add_widget(widget)
+            self._cart_item_widgets[pid] = widget
+
+        # 3. 已有商品：增量刷新数量/折扣价，不重建 widget
+        for pid in current_ids & cached_ids:
+            item = app.cart.items[pid]
+            widget = self._cart_item_widgets[pid]
+            widget.refresh_display(
+                quantity=item.quantity,
+                discount_price=item.discount_price
+            )
 
         # 更新总价
         item_discount = app.cart.item_discount
@@ -226,10 +249,39 @@ class CartScreen(Screen):
     def select_address(self, address):
         self.address_label.text = address
         self.address_label.theme_text_color = "Primary"
+        self._has_selected_address = True
+        # 启用导入折扣按钮
+        self.import_btn.md_bg_color = (0.9, 0.5, 0.1, 1)
         if self.menu:
             self.menu.dismiss()
 
     # ========== 导入历史订单 ==========
+
+    def _get_current_recipient_orders(self):
+        """获取当前收货人名下的所有订单"""
+        from kivy.app import App
+        app = App.get_running_app()
+
+        if not app.current_user:
+            return []
+
+        orders = app.order_manager.get_orders_by_user(app.current_user['phone'])
+
+        # 如果已选择地址，按收件人和地址筛选
+        current_address = self.address_label.text
+        if current_address != "选择收件人信息":
+            filtered_orders = []
+            for order in orders:
+                current_parts = current_address.split('~')
+                order_parts = order.address.split('~')
+                if len(current_parts) >= 3 and len(order_parts) >= 3:
+                    current_recipient = '~'.join(current_parts[:-1])
+                    order_recipient = '~'.join(order_parts[:-1])
+                    if current_recipient == order_recipient and current_parts[-1] == order_parts[-1]:
+                        filtered_orders.append(order)
+            orders = filtered_orders
+
+        return orders
 
     def show_import_orders(self, *args):
         """显示可导入的历史订单列表"""
@@ -240,23 +292,11 @@ class CartScreen(Screen):
             MDSnackbar(MDLabel(text="请先登录", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
-        orders = app.order_manager.get_orders_by_user(app.current_user['phone'])
+        # 未选择收货人，不响应
+        if not self._has_selected_address or self.address_label.text == "选择收件人信息":
+            return
 
-        # 如果已选择地址，按收件人和地址筛选
-        current_address = self.address_label.text
-        if current_address != "选择收件人信息":
-            filtered_orders = []
-            for order in orders:
-                # 地址格式: 姓名~电话~地址
-                current_parts = current_address.split('~')
-                order_parts = order.address.split('~')
-                # 比较收件人(姓名~电话)和地址
-                if len(current_parts) >= 3 and len(order_parts) >= 3:
-                    current_recipient = '~'.join(current_parts[:-1])
-                    order_recipient = '~'.join(order_parts[:-1])
-                    if current_recipient == order_recipient and current_parts[-1] == order_parts[-1]:
-                        filtered_orders.append(order)
-            orders = filtered_orders
+        orders = self._get_current_recipient_orders()
 
         if not orders:
             dialog = MDDialog(
@@ -300,6 +340,11 @@ class CartScreen(Screen):
                 height=dp(500)
             ),
             buttons=[
+                MDRaisedButton(
+                    text="全部导入",
+                    md_bg_color=(0.2, 0.6, 0.86, 1),
+                    on_release=lambda x: self.do_import_all_orders()
+                ),
                 MDFlatButton(
                     text="关闭",
                     on_release=lambda x: self.import_orders_dialog.dismiss()
@@ -457,6 +502,49 @@ class CartScreen(Screen):
         MDSnackbar(
             MDLabel(
                 text=f"成功导入 {imported_count} 个商品的折扣价",
+                theme_text_color="Custom",
+                text_color=(0.2, 0.8, 0.2, 1)
+            )
+        ).open()
+
+    def do_import_all_orders(self):
+        """全部导入：将该收货人名下所有订单中最低折扣价应用到购物车"""
+        from kivy.app import App
+        app = App.get_running_app()
+
+        orders = self._get_current_recipient_orders()
+        if not orders:
+            return
+
+        # 收集所有订单中的商品折扣价，取最低值
+        # key: product_id, value: min_discount_price
+        min_discount_map = {}
+        for order in orders:
+            for item in order.items:
+                product_id = item['product_id']
+                discount_price = item.get('discount_price')
+                # 只考虑有折扣价且低于原价的
+                if discount_price is not None and discount_price < item['price']:
+                    if product_id not in min_discount_map:
+                        min_discount_map[product_id] = float(discount_price)
+                    else:
+                        min_discount_map[product_id] = min(min_discount_map[product_id], float(discount_price))
+
+        # 应用到当前购物车（只应用购物车中已有的商品）
+        imported_count = 0
+        for product_id, min_price in min_discount_map.items():
+            if product_id in app.cart.items:
+                app.cart.update_discount_price(product_id, min_price)
+                imported_count += 1
+
+        self.import_orders_dialog.dismiss()
+
+        # 刷新购物车显示
+        self.update_cart()
+
+        MDSnackbar(
+            MDLabel(
+                text=f"全部导入成功，共导入 {imported_count} 个商品的最低折扣价",
                 theme_text_color="Custom",
                 text_color=(0.2, 0.8, 0.2, 1)
             )

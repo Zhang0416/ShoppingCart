@@ -1,4 +1,6 @@
 from kivy.uix.screenmanager import Screen
+from kivy.uix.widget import Widget
+from kivy.uix.modalview import ModalView
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton, MDIconButton, MDFlatButton
@@ -637,28 +639,41 @@ class OrdersScreen(Screen):
         self.all_orders_detail_dailog.open()
 
     def show_order_detail(self, order, has_delete=True, prev_dialog="my"):
-        """显示订单详情"""
-        scroll_view = MDScrollView()
-        recent_list = MDList()
+        """显示订单详情（自适应宽度 Dialog）"""
+        from kivy.graphics import Color, Line
+
+        content = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(5),
+            size_hint_y=None,
+            height=dp(420)
+        )
+
+        scroll_view = MDScrollView(size_hint=(1, 1))
+        recent_list = MDList(size_hint_y=None)
+        recent_list.bind(minimum_height=recent_list.setter('height'))
+
+        # 顶部留白
+        recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(10)))
 
         # 订单信息
         infor_label = MDLabel(
-            text="----------- 订单信息 -----------",
+            text="------------ 订单信息 ------------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
-            height=dp(20)
+            height=dp(24),
+            halign='center'
         )
+        infor_label.bind(width=lambda instance, value: setattr(instance, 'text_size', (value, None)))
         recent_list.add_widget(infor_label)
 
         tmp = order.address.split('~')
         info_text = [
             f"收货人: {'~'.join(tmp[:-1])}",
-            f"收货地址: {tmp[-1]}",  # 支付方式: {order.payment_method}
-            # f"下单账号: {order.user_name}",
+            f"收货地址: {tmp[-1]}",
             f"下单时间: {order.user_name}~{datetime.fromisoformat(order.created_at).strftime('%Y-%m-%d %H:%M:%S')}",
             f"订单号: {order.order_id[:20]}~{self.get_status_text(order.status)}",
-            # f"订单状态: {self.get_status_text(order.status)}",
         ]
         for item in info_text:
             item_label = MDLabel(
@@ -666,22 +681,24 @@ class OrdersScreen(Screen):
                 theme_text_color="Secondary",
                 size_hint_y=None,
                 font_style="Caption",
-                height=dp(20)
+                height=dp(20),
+                padding=(dp(20), 0)
             )
             recent_list.add_widget(item_label)
 
         # 商品列表
+        recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(15)))
         items_label = MDLabel(
-            text="----------- 商品列表 -----------",
+            text="------------ 商品列表 ------------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
-            height=dp(20),
-            # halign='center'
+            height=dp(24),
+            halign='center'
         )
+        items_label.bind(width=lambda instance, value: setattr(instance, 'text_size', (value, None)))
         recent_list.add_widget(items_label)
 
-        # 添加商品项
         counts = 0
         table_items = [["\n      名称", "\n 数量", "\n    原价", "\n   折扣价"]]
         for item in order.items:
@@ -704,7 +721,7 @@ class OrdersScreen(Screen):
             spacing=dp(0)
         )
         size_x_arr = [0.4, 0.15, 0.225, 0.225]
-        for i, cols in enumerate(list(zip(*table_items))):  # zip命令将二维list的每列打包成list
+        for i, cols in enumerate(list(zip(*table_items))):
             item_text = MDLabel(
                 text="\n".join(cols),
                 theme_text_color="Secondary",
@@ -716,55 +733,69 @@ class OrdersScreen(Screen):
         recent_list.add_widget(table_layout)
 
         # 金额汇总
+        recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(15)))
         summary_label = MDLabel(
-            text="\n\n----------- 金额汇总 -----------",
+            text="------------ 金额汇总 ------------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
-            height=dp(20)
+            height=dp(24),
+            halign='center'
         )
+        summary_label.bind(width=lambda instance, value: setattr(instance, 'text_size', (value, None)))
         recent_list.add_widget(summary_label)
 
-        summary_text = f"""\n\n\n\n\n
-        商品总数: {int(counts)}
-        商品小计: ¥{order.subtotal:.1f}
-        优惠金额: ¥{order.discount:.1f}
-        应付总额: ¥{order.total:.1f}
-        """
+        summary_text = (
+            f"商品总数: {int(counts)}\n"
+            f"商品小计: ¥{order.subtotal:.1f}\n"
+            f"优惠金额: ¥{order.discount:.1f}\n"
+            f"应付总额: ¥{order.total:.1f}"
+        )
 
-        summary_label = MDLabel(
+        summary_value = MDLabel(
             text=summary_text,
             theme_text_color="Error",
             font_style="Subtitle2",
             size_hint_y=None,
-            height=dp(40)
+            text_size=(None, None),
+            padding=(dp(20), 0)
         )
-        recent_list.add_widget(summary_label)
-        # dialog.content_cls.add_widget(summary_label)
+        summary_value.bind(
+            width=lambda instance, value: setattr(instance, 'text_size', (value, None)),
+            texture_size=lambda instance, value: setattr(instance, 'height', value[1])
+        )
+        recent_list.add_widget(summary_value)
         scroll_view.add_widget(recent_list)
+        content.add_widget(scroll_view)
 
-        # 调整内容高度
-        # dialog.content_cls.height = dp(120 + len(order.items) * 20 + 60 + 10)
+        print_btn = MDRaisedButton(
+            text="打印订单",
+            md_bg_color=(0.2, 0.6, 0.86, 1),
+            on_release=lambda x, o=order: self._print_order(o)
+        )
+        save_img_btn = MDRaisedButton(
+            text="保存长图",
+            md_bg_color=(0.2, 0.7, 0.5, 1),
+            on_release=lambda x, o=order: self.save_order_image(o)
+        )
 
         if has_delete:
             self.order_detail_dialog = MDDialog(
                 title=f"订单详情",
                 type="custom",
-                size_hint_x=None,
-                width=dp(360),
-                content_cls=MDBoxLayout(
-                    orientation='vertical',
-                    spacing=dp(10),
-                    size_hint_y=None,
-                    height=dp(600)
-                ),
+                size_hint_x=0.9,
+                content_cls=content,
                 buttons=[
                     MDRaisedButton(
                         text="删除订单",
+                        md_bg_color=(0.9, 0.3, 0.3, 1),
                         on_release=lambda x, o=order: self.delete_my_order(o, prev=prev_dialog)
                     ),
-                    MDFlatButton(
+                    print_btn,
+                    save_img_btn,
+                    MDRaisedButton(
                         text="关闭",
+                        md_bg_color=(0.5, 0.5, 0.5, 1),
                         on_release=lambda x: self.order_detail_dialog.dismiss()
                     )
                 ]
@@ -773,22 +804,19 @@ class OrdersScreen(Screen):
             self.order_detail_dialog = MDDialog(
                 title=f"订单详情",
                 type="custom",
-                size_hint_x=None,
-                width=dp(360),
-                content_cls=MDBoxLayout(
-                    orientation='vertical',
-                    spacing=dp(10),
-                    size_hint_y=None,
-                    height=dp(600)
-                ),
+                size_hint_x=0.9,
+                content_cls=content,
                 buttons=[
-                    MDFlatButton(
+                    print_btn,
+                    save_img_btn,
+                    MDRaisedButton(
                         text="关闭",
+                        md_bg_color=(0.5, 0.5, 0.5, 1),
                         on_release=lambda x: self.order_detail_dialog.dismiss()
                     )
                 ]
             )
-        self.order_detail_dialog.content_cls.add_widget(scroll_view)
+        self.order_detail_dialog.ids.title.font_name = CHINESE_FONT_NAME
         self.order_detail_dialog.open()
 
     def delete_my_order(self, order, prev="my"):
@@ -878,11 +906,204 @@ class OrdersScreen(Screen):
 
         MDSnackbar(MDLabel(text="订单已刷新", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1))).open()
 
+    def _print_order(self, order):
+        """打印订单到蓝牙打印机"""
+        from kivy.logger import Logger
+        from kivy.app import App
+        from screens.components.bluetooth_printer import get_printer_manager
+
+        Logger.info("OrdersScreen: _print_order 开始")
+        mgr = get_printer_manager()
+        Logger.info(f"OrdersScreen: mgr={mgr}")
+        if not mgr:
+            MDSnackbar(
+                MDLabel(text="蓝牙打印机模块未初始化", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
+            ).open()
+            return
+
+        connected = mgr.is_connected()
+        Logger.info(f"OrdersScreen: is_connected={connected}")
+        if not connected:
+            MDSnackbar(
+                MDLabel(text="没有可用的蓝牙打印机，请先在个人中心连接打印机", theme_text_color="Custom",
+                        text_color=(0.9, 0.2, 0.2, 1))
+            ).open()
+            return
+
+        try:
+            Logger.info("OrdersScreen: 调用 mgr.print_order")
+            success, error = mgr.print_order(order)
+            Logger.info(f"OrdersScreen: print_order 返回 success={success}, error={error}")
+        except Exception as e:
+            Logger.error(f"OrdersScreen: print_order 调用异常: {e}")
+            import traceback
+            Logger.error(traceback.format_exc())
+            success = False
+            error = str(e)
+
+        if success:
+            MDSnackbar(
+                MDLabel(text="订单已发送到打印机", theme_text_color="Custom", text_color=(0.2, 0.8, 0.2, 1)),
+                duration=2,
+            ).open()
+        else:
+            MDSnackbar(
+                MDLabel(text=f"打印失败: {error}", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))
+            ).open()
+
     def go_back(self):
         """返回主页"""
         from kivy.app import App
         app = App.get_running_app()
         app.show_home()
+
+    def _generate_order_image(self, order, output_path):
+        """使用 Pillow 生成订单长图"""
+        from PIL import Image, ImageDraw, ImageFont
+        import os
+
+        WIDTH = 1080
+        MARGIN = 40
+        LINE_H = 50
+        BG_COLOR = (255, 255, 255)
+        TEXT_COLOR = (0, 0, 0)
+        HEADER_COLOR = (80, 80, 80)
+        SEP_COLOR = (200, 200, 200)
+
+        # 加载中文字体
+        font_path = None
+        try:
+            from kivy.resources import resource_find
+            font_path = resource_find('screens/assets/fonts/msyhbd.ttc')
+        except Exception:
+            pass
+
+        if not font_path or not os.path.exists(font_path):
+            for fp in ['/system/fonts/DroidSansFallback.ttf',
+                       '/system/fonts/NotoSansCJK-Regular.ttc',
+                       '/system/fonts/NotoSansSC-Regular.otf',
+                       '/system/fonts/Roboto-Regular.ttf']:
+                if os.path.exists(fp):
+                    font_path = fp
+                    break
+
+        try:
+            font_title = ImageFont.truetype(font_path, 48)
+            font_header = ImageFont.truetype(font_path, 32)
+            font_body = ImageFont.truetype(font_path, 30)
+        except Exception:
+            font_title = font_header = font_body = ImageFont.load_default()
+
+        # 辅助函数：获取文字尺寸（兼容不同 Pillow 版本）
+        def get_text_size(draw, text, font):
+            try:
+                bbox = draw.textbbox((0, 0), text, font=font)
+                return bbox[2] - bbox[0], bbox[3] - bbox[1]
+            except Exception:
+                try:
+                    return draw.textsize(text, font=font)
+                except Exception:
+                    return font.getsize(text)
+
+        # 构建内容行
+        lines = []
+        lines.append(("title", "订单详情"))
+        lines.append(("sep", None))
+
+        tmp = order.address.split('~')
+        lines.append(("body", f"收货人: {'~'.join(tmp[:-1])}"))
+        lines.append(("body", f"收货地址: {tmp[-1]}"))
+        lines.append(("body", f"下单时间: {order.user_name}~{datetime.fromisoformat(order.created_at).strftime('%Y-%m-%d %H:%M:%S')}"))
+        lines.append(("body", f"订单号: {order.order_id[:20]}"))
+        lines.append(("body", f"状态: {self.get_status_text(order.status)}"))
+        lines.append(("sep", None))
+        lines.append(("header", "商品列表"))
+        lines.append(("header", "名称                数量    原价      折扣价"))
+
+        counts = 0
+        for item in order.items:
+            counts += item['quantity']
+            original_ss = float(item['price']) * item['quantity']
+            discount_price = item.get('discount_price', item['price'])
+            discount_ss = float(discount_price) * item['quantity']
+            name = item['product_name'][:16]
+            lines.append(("body", f"{name:<16}  {item['quantity']:>3}    ¥{original_ss:>6.1f}    ¥{discount_ss:>6.1f}"))
+
+        lines.append(("sep", None))
+        lines.append(("header", "金额汇总"))
+        lines.append(("body", f"商品总数: {counts}"))
+        lines.append(("body", f"商品小计: ¥{order.subtotal:.1f}"))
+        lines.append(("body", f"优惠金额: ¥{order.discount:.1f}"))
+        lines.append(("body", f"应付总额: ¥{order.total:.1f}"))
+
+        # 计算图片高度
+        total_height = MARGIN * 2
+        for typ, text in lines:
+            if typ == "title":
+                total_height += LINE_H + 20
+            elif typ == "sep":
+                total_height += LINE_H
+            else:
+                total_height += LINE_H
+
+        # 创建图片并绘制
+        img = Image.new('RGB', (WIDTH, total_height), BG_COLOR)
+        draw = ImageDraw.Draw(img)
+
+        y = MARGIN
+        for typ, text in lines:
+            if typ == "title":
+                tw, th = get_text_size(draw, text, font_title)
+                x = (WIDTH - tw) // 2
+                draw.text((x, y), text, font=font_title, fill=TEXT_COLOR)
+                y += LINE_H + 20
+            elif typ == "header":
+                draw.text((MARGIN, y), text, font=font_header, fill=HEADER_COLOR)
+                y += LINE_H
+            elif typ == "body":
+                draw.text((MARGIN, y), text, font=font_body, fill=TEXT_COLOR)
+                y += LINE_H
+            elif typ == "sep":
+                draw.line([(MARGIN, y + LINE_H // 2), (WIDTH - MARGIN, y + LINE_H // 2)], fill=SEP_COLOR, width=2)
+                y += LINE_H
+
+        img.save(output_path, 'PNG')
+        return output_path
+
+    def save_order_image(self, order):
+        """保存订单长图到相册"""
+        from kivy.logger import Logger
+        try:
+            from plyer import storagepath
+            from datetime import datetime as dt_now
+            import os
+
+            pics_dir = storagepath.get_pictures_dir()
+            if not pics_dir:
+                pics_dir = os.path.join(os.path.expanduser('~'), 'Pictures')
+
+            save_dir = os.path.join(pics_dir, 'ShopCart')
+            os.makedirs(save_dir, exist_ok=True)
+
+            timestamp = dt_now.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"order_{order.order_id[:8]}_{timestamp}.png"
+            filepath = os.path.join(save_dir, filename)
+
+            self._generate_order_image(order, filepath)
+            Logger.info(f"OrdersScreen: 订单长图已保存: {filepath}")
+
+            MDSnackbar(
+                MDLabel(text=f"长图已保存到相册/ShopCart/{filename}"),
+                duration=3,
+            ).open()
+        except Exception as e:
+            Logger.error(f"OrdersScreen: 保存订单长图失败: {e}")
+            import traceback
+            Logger.error(traceback.format_exc())
+            MDSnackbar(
+                MDLabel(text=f"保存失败: {e}"),
+                duration=3,
+            ).open()
 
 
 # Android平台特定导入
