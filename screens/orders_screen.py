@@ -141,6 +141,8 @@ class OrdersScreen(Screen):
         if not orders:
             dialog = MDDialog(
                 title="我的订单",
+                size_hint_x=0.9,
+                background_color=(0, 0, 0, 0),
                 text="暂无订单记录",
                 buttons=[
                     MDFlatButton(
@@ -202,8 +204,8 @@ class OrdersScreen(Screen):
         self.my_order_dialog = MDDialog(
             title="我的订单",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -279,6 +281,8 @@ class OrdersScreen(Screen):
         if not all_orders:
             dialog = MDDialog(
                 title="历史订单",
+                size_hint_x=0.9,
+                background_color=(0, 0, 0, 0),
                 text="暂无历史订单记录",
                 buttons=[
                     MDFlatButton(
@@ -300,8 +304,8 @@ class OrdersScreen(Screen):
         self.history_orders_dialog = MDDialog(
             title="历史订单统计",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -397,8 +401,8 @@ class OrdersScreen(Screen):
         self.statis_select_year_dialog = MDDialog(
             title="统计订单",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -501,8 +505,8 @@ class OrdersScreen(Screen):
         self.statis_orders_dialog = MDDialog(
             title="统计订单",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -549,8 +553,8 @@ class OrdersScreen(Screen):
         month_orders_dialog = MDDialog(
             title=f"{month}月订单明细",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -615,8 +619,8 @@ class OrdersScreen(Screen):
         self.all_orders_detail_dailog = MDDialog(
             title="所有订单详情",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -649,7 +653,7 @@ class OrdersScreen(Screen):
             height=dp(420)
         )
 
-        scroll_view = MDScrollView(size_hint=(1, 1))
+        scroll_view = MDScrollView(size_hint=(1, None), height=dp(365))
         recent_list = MDList(size_hint_y=None)
         recent_list.bind(minimum_height=recent_list.setter('height'))
 
@@ -682,7 +686,10 @@ class OrdersScreen(Screen):
                 size_hint_y=None,
                 font_style="Caption",
                 height=dp(20),
-                padding=(dp(20), 0)
+            )
+            item_label.bind(
+                width=lambda instance, value: setattr(instance, 'text_size', (value, None)),
+                texture_size=lambda instance, value: setattr(instance, 'height', value[1])
             )
             recent_list.add_widget(item_label)
 
@@ -700,37 +707,91 @@ class OrdersScreen(Screen):
         recent_list.add_widget(items_label)
 
         counts = 0
-        table_items = [["\n      名称", "\n 数量", "\n    原价", "\n   折扣价"]]
+        size_x_arr = [0.4, 0.15, 0.225, 0.225]
+
+        # 表头
+        header_row = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(22),
+            padding=(dp(5), 0)
+        )
+        headers = ["名称", "数量", "原价", "折扣价"]
+        haligns = ["left", "center", "right", "right"]
+        for i, h in enumerate(headers):
+            header_row.add_widget(MDLabel(
+                text=h,
+                theme_text_color="Secondary",
+                size_hint=(size_x_arr[i], 1),
+                font_style="Caption",
+                halign=haligns[i],
+                bold=True,
+            ))
+        recent_list.add_widget(header_row)
+
+        # 商品行
         for item in order.items:
             counts += item['quantity']
             original_ss = float(item['price']) * item['quantity']
             discount_price = item.get('discount_price', item['price'])
             discount_ss = float(discount_price) * item['quantity']
-            table_items.append([
-                f"• {item['product_name']}",
-                f" × {item['quantity']}",
-                f" ¥{original_ss:.1f}",
-                f" ¥{discount_ss:.1f}"
-            ])
 
-        table_layout = MDBoxLayout(
-            orientation='horizontal',
-            size_hint=(1, None),
-            height=dp(18 * (len(order.items) + 1)),
-            padding=dp(10),
-            spacing=dp(0)
-        )
-        size_x_arr = [0.4, 0.15, 0.225, 0.225]
-        for i, cols in enumerate(list(zip(*table_items))):
-            item_text = MDLabel(
-                text="\n".join(cols),
-                theme_text_color="Secondary",
-                size_hint=(size_x_arr[i], 1),
-                font_style="Caption",
+            row = MDBoxLayout(
+                orientation='horizontal',
+                size_hint=(1, None),
+                height=dp(20),
+                padding=(dp(5), 0)
             )
-            table_layout.add_widget(item_text)
 
-        recent_list.add_widget(table_layout)
+            name_lbl = MDLabel(
+                text=f"• {item['product_name']}",
+                theme_text_color="Secondary",
+                size_hint=(0.4, None),
+                font_style="Caption",
+                valign="center",
+            )
+            name_lbl.bind(
+                width=lambda inst, w: setattr(inst, 'text_size', (w, None)),
+                texture_size=lambda inst, ts: setattr(inst, 'height', ts[1])
+            )
+
+            qty_lbl = MDLabel(
+                text=f"× {item['quantity']}",
+                theme_text_color="Secondary",
+                size_hint=(0.15, 1),
+                font_style="Caption",
+                halign="center",
+                valign="center",
+            )
+
+            orig_lbl = MDLabel(
+                text=f"¥{original_ss:.1f}",
+                theme_text_color="Secondary",
+                size_hint=(0.225, 1),
+                font_style="Caption",
+                halign="right",
+                valign="center",
+            )
+
+            disc_lbl = MDLabel(
+                text=f"¥{discount_ss:.1f}",
+                theme_text_color="Secondary",
+                size_hint=(0.225, 1),
+                font_style="Caption",
+                halign="right",
+                valign="center",
+            )
+
+            def on_name_height(inst, ts, row=row):
+                row.height = max(ts[1], dp(20))
+
+            name_lbl.bind(texture_size=on_name_height)
+
+            row.add_widget(name_lbl)
+            row.add_widget(qty_lbl)
+            row.add_widget(orig_lbl)
+            row.add_widget(disc_lbl)
+            recent_list.add_widget(row)
 
         # 金额汇总
         recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(15)))
@@ -768,54 +829,58 @@ class OrdersScreen(Screen):
         scroll_view.add_widget(recent_list)
         content.add_widget(scroll_view)
 
+        # 按钮容器：平均分布（减小字号和高度以适配窄屏）
+        button_box = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(36),
+            spacing=dp(2)
+        )
+
+        btn_ratio = 0.25 if has_delete else 0.333
+
+        if has_delete:
+            delete_btn = MDRaisedButton(
+                text="删除",
+                size_hint=(btn_ratio, 1),
+                md_bg_color=(0.9, 0.3, 0.3, 1),
+                on_release=lambda x, o=order: self.delete_my_order(o, prev=prev_dialog)
+            )
+            button_box.add_widget(delete_btn)
+
         print_btn = MDRaisedButton(
-            text="打印订单",
+            text="打印",
+            size_hint=(btn_ratio, 1),
             md_bg_color=(0.2, 0.6, 0.86, 1),
             on_release=lambda x, o=order: self._print_order(o)
         )
         save_img_btn = MDRaisedButton(
-            text="保存长图",
+            text="保存",
+            size_hint=(btn_ratio, 1),
             md_bg_color=(0.2, 0.7, 0.5, 1),
             on_release=lambda x, o=order: self.save_order_image(o)
         )
+        close_btn = MDRaisedButton(
+            text="关闭",
+            size_hint=(btn_ratio, 1),
+            md_bg_color=(0.5, 0.5, 0.5, 1),
+            on_release=lambda x: self.order_detail_dialog.dismiss()
+        )
 
-        if has_delete:
-            self.order_detail_dialog = MDDialog(
-                title=f"订单详情",
-                type="custom",
-                size_hint_x=0.9,
-                content_cls=content,
-                buttons=[
-                    MDRaisedButton(
-                        text="删除订单",
-                        md_bg_color=(0.9, 0.3, 0.3, 1),
-                        on_release=lambda x, o=order: self.delete_my_order(o, prev=prev_dialog)
-                    ),
-                    print_btn,
-                    save_img_btn,
-                    MDRaisedButton(
-                        text="关闭",
-                        md_bg_color=(0.5, 0.5, 0.5, 1),
-                        on_release=lambda x: self.order_detail_dialog.dismiss()
-                    )
-                ]
-            )
-        else:
-            self.order_detail_dialog = MDDialog(
-                title=f"订单详情",
-                type="custom",
-                size_hint_x=0.9,
-                content_cls=content,
-                buttons=[
-                    print_btn,
-                    save_img_btn,
-                    MDRaisedButton(
-                        text="关闭",
-                        md_bg_color=(0.5, 0.5, 0.5, 1),
-                        on_release=lambda x: self.order_detail_dialog.dismiss()
-                    )
-                ]
-            )
+        button_box.add_widget(print_btn)
+        button_box.add_widget(save_img_btn)
+        button_box.add_widget(close_btn)
+
+        content.add_widget(button_box)
+
+        self.order_detail_dialog = MDDialog(
+            title=f"订单详情",
+            type="custom",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
+            content_cls=content,
+            buttons=[]
+        )
         self.order_detail_dialog.ids.title.font_name = CHINESE_FONT_NAME
         self.order_detail_dialog.open()
 
@@ -825,8 +890,8 @@ class OrdersScreen(Screen):
         self.confirm_delete_order_dialog = MDDialog(
             title="确认删除",
             type="custom",
-            size_hint_x=None,
-            width=dp(330),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -958,17 +1023,18 @@ class OrdersScreen(Screen):
         app.show_home()
 
     def _generate_order_image(self, order, output_path):
-        """使用 Pillow 生成订单长图"""
+        """使用 Pillow 生成订单长图，格式与订单详情页面一致"""
         from PIL import Image, ImageDraw, ImageFont
         import os
 
-        WIDTH = 1080
-        MARGIN = 40
-        LINE_H = 50
+        WIDTH = 384
+        MARGIN = 16
+        INNER_WIDTH = WIDTH - 2 * MARGIN
         BG_COLOR = (255, 255, 255)
         TEXT_COLOR = (0, 0, 0)
         HEADER_COLOR = (80, 80, 80)
         SEP_COLOR = (200, 200, 200)
+        RED_COLOR = (220, 50, 50)
 
         # 加载中文字体
         font_path = None
@@ -981,20 +1047,19 @@ class OrdersScreen(Screen):
         if not font_path or not os.path.exists(font_path):
             for fp in ['/system/fonts/DroidSansFallback.ttf',
                        '/system/fonts/NotoSansCJK-Regular.ttc',
-                       '/system/fonts/NotoSansSC-Regular.otf',
-                       '/system/fonts/Roboto-Regular.ttf']:
+                       '/system/fonts/NotoSansSC-Regular.otf']:
                 if os.path.exists(fp):
                     font_path = fp
                     break
 
         try:
-            font_title = ImageFont.truetype(font_path, 48)
-            font_header = ImageFont.truetype(font_path, 32)
-            font_body = ImageFont.truetype(font_path, 30)
+            font_title = ImageFont.truetype(font_path, 28)
+            font_section = ImageFont.truetype(font_path, 20)
+            font_body = ImageFont.truetype(font_path, 18)
+            font_bold = ImageFont.truetype(font_path, 20)
         except Exception:
-            font_title = font_header = font_body = ImageFont.load_default()
+            font_title = font_section = font_body = font_bold = ImageFont.load_default()
 
-        # 辅助函数：获取文字尺寸（兼容不同 Pillow 版本）
         def get_text_size(draw, text, font):
             try:
                 bbox = draw.textbbox((0, 0), text, font=font)
@@ -1005,20 +1070,79 @@ class OrdersScreen(Screen):
                 except Exception:
                     return font.getsize(text)
 
-        # 构建内容行
-        lines = []
-        lines.append(("title", "订单详情"))
-        lines.append(("sep", None))
+        def wrap_text(draw, text, font, max_width):
+            """按最大宽度对文本进行换行（逐字符）"""
+            if not text:
+                return [""]
+            lines = []
+            current = ""
+            for ch in text:
+                test = current + ch
+                w, _ = get_text_size(draw, test, font)
+                if w <= max_width:
+                    current = test
+                else:
+                    lines.append(current)
+                    current = ch
+            if current:
+                lines.append(current)
+            return lines if lines else [text]
+
+        # 列宽定义（四列：名称 0.40, 数量 0.15, 原价 0.225, 折扣价 0.225）
+        name_col_w = int(INNER_WIDTH * 0.40)
+        qty_col_w = int(INNER_WIDTH * 0.15)
+        orig_col_w = int(INNER_WIDTH * 0.225)
+        disc_col_w = INNER_WIDTH - name_col_w - qty_col_w - orig_col_w
+
+        col_x = [
+            MARGIN,
+            MARGIN + name_col_w,
+            MARGIN + name_col_w + qty_col_w,
+            MARGIN + name_col_w + qty_col_w + orig_col_w,
+        ]
+        col_w = [name_col_w, qty_col_w, orig_col_w, disc_col_w]
+
+        # 先创建临时 draw 用于测量
+        tmp_img = Image.new('RGB', (1, 1))
+        tmp_draw = ImageDraw.Draw(tmp_img)
+
+        # 构建绘制项并计算高度
+        draw_items = []
+        y = MARGIN
+
+        # 大标题
+        draw_items.append(("title", "订单详情", y))
+        y += 45
+
+        # 分隔线
+        draw_items.append(("sep", None, y))
+        y += 18
+
+        # 订单信息
+        section_text = "------------ 订单信息 ------------"
+        draw_items.append(("section_title", section_text, y))
+        y += 32
 
         tmp = order.address.split('~')
-        lines.append(("body", f"收货人: {'~'.join(tmp[:-1])}"))
-        lines.append(("body", f"收货地址: {tmp[-1]}"))
-        lines.append(("body", f"下单时间: {order.user_name}~{datetime.fromisoformat(order.created_at).strftime('%Y-%m-%d %H:%M:%S')}"))
-        lines.append(("body", f"订单号: {order.order_id[:20]}"))
-        lines.append(("body", f"状态: {self.get_status_text(order.status)}"))
-        lines.append(("sep", None))
-        lines.append(("header", "商品列表"))
-        lines.append(("header", "名称                数量    原价      折扣价"))
+        info_lines = [
+            f"收货人: {'~'.join(tmp[:-1])}",
+            f"收货地址: {tmp[-1]}",
+            f"下单时间: {order.user_name}~{datetime.fromisoformat(order.created_at).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"订单号: {order.order_id[:20]}~{self.get_status_text(order.status)}",
+        ]
+        for line in info_lines:
+            draw_items.append(("body", line, y))
+            y += 28
+
+        # 商品列表
+        y += 8
+        section_text = "------------ 商品列表 ------------"
+        draw_items.append(("section_title", section_text, y))
+        y += 32
+
+        # 表头（四列：名称、数量、原价、折扣价）
+        draw_items.append(("table_header", ["名称", "数量", "原价", "折扣价"], y))
+        y += 28
 
         counts = 0
         for item in order.items:
@@ -1026,76 +1150,171 @@ class OrdersScreen(Screen):
             original_ss = float(item['price']) * item['quantity']
             discount_price = item.get('discount_price', item['price'])
             discount_ss = float(discount_price) * item['quantity']
-            name = item['product_name'][:16]
-            lines.append(("body", f"{name:<16}  {item['quantity']:>3}    ¥{original_ss:>6.1f}    ¥{discount_ss:>6.1f}"))
 
-        lines.append(("sep", None))
-        lines.append(("header", "金额汇总"))
-        lines.append(("body", f"商品总数: {counts}"))
-        lines.append(("body", f"商品小计: ¥{order.subtotal:.1f}"))
-        lines.append(("body", f"优惠金额: ¥{order.discount:.1f}"))
-        lines.append(("body", f"应付总额: ¥{order.total:.1f}"))
+            name_text = f"• {item['product_name']}"
+            name_lines = wrap_text(tmp_draw, name_text, font_body, name_col_w - 6)
+            row_h = max(len(name_lines) * 24, 28)
 
-        # 计算图片高度
-        total_height = MARGIN * 2
-        for typ, text in lines:
-            if typ == "title":
-                total_height += LINE_H + 20
-            elif typ == "sep":
-                total_height += LINE_H
-            else:
-                total_height += LINE_H
+            draw_items.append(("table_row", {
+                "name_lines": name_lines,
+                "qty": f"× {item['quantity']}",
+                "orig": f"¥{original_ss:.1f}",
+                "disc": f"¥{discount_ss:.1f}",
+                "row_h": row_h,
+            }, y))
+            y += row_h
 
-        # 创建图片并绘制
+        # 金额汇总
+        y += 8
+        section_text = "------------ 金额汇总 ------------"
+        draw_items.append(("section_title", section_text, y))
+        y += 32
+
+        summary_lines = [
+            f"商品总数: {int(counts)}",
+            f"商品小计: ¥{order.subtotal:.1f}",
+            f"优惠金额: ¥{order.discount:.1f}",
+            f"应付总额: ¥{order.total:.1f}",
+        ]
+        for line in summary_lines:
+            draw_items.append(("body_bold", line, y))
+            y += 28
+
+        y += MARGIN  # 底部边距
+        total_height = y
+
+        # 创建最终图片
         img = Image.new('RGB', (WIDTH, total_height), BG_COLOR)
         draw = ImageDraw.Draw(img)
 
-        y = MARGIN
-        for typ, text in lines:
+        # 绘制
+        for typ, data, y in draw_items:
             if typ == "title":
-                tw, th = get_text_size(draw, text, font_title)
+                tw, th = get_text_size(draw, data, font_title)
                 x = (WIDTH - tw) // 2
-                draw.text((x, y), text, font=font_title, fill=TEXT_COLOR)
-                y += LINE_H + 20
-            elif typ == "header":
-                draw.text((MARGIN, y), text, font=font_header, fill=HEADER_COLOR)
-                y += LINE_H
-            elif typ == "body":
-                draw.text((MARGIN, y), text, font=font_body, fill=TEXT_COLOR)
-                y += LINE_H
+                draw.text((x, y), data, font=font_title, fill=TEXT_COLOR)
+            elif typ == "section_title":
+                tw, th = get_text_size(draw, data, font_section)
+                x = (WIDTH - tw) // 2
+                draw.text((x, y), data, font=font_section, fill=HEADER_COLOR)
             elif typ == "sep":
-                draw.line([(MARGIN, y + LINE_H // 2), (WIDTH - MARGIN, y + LINE_H // 2)], fill=SEP_COLOR, width=2)
-                y += LINE_H
+                draw.line([(MARGIN, y + 9), (WIDTH - MARGIN, y + 9)], fill=SEP_COLOR, width=2)
+            elif typ == "body":
+                draw.text((MARGIN, y), data, font=font_body, fill=TEXT_COLOR)
+            elif typ == "body_bold":
+                draw.text((MARGIN, y), data, font=font_bold, fill=RED_COLOR)
+            elif typ == "table_header":
+                headers = data
+                haligns = ["left", "center", "right", "right"]
+                for i, h in enumerate(headers):
+                    if haligns[i] == "center":
+                        tw, _ = get_text_size(draw, h, font_body)
+                        tx = col_x[i] + (col_w[i] - tw) // 2
+                    elif haligns[i] == "right":
+                        tw, _ = get_text_size(draw, h, font_body)
+                        tx = col_x[i] + col_w[i] - tw
+                    else:
+                        tx = col_x[i]
+                    draw.text((tx, y), h, font=font_body, fill=HEADER_COLOR)
+            elif typ == "table_row":
+                row_data = data
+                row_h = row_data["row_h"]
+                # 名称（可能多行）
+                for j, nl in enumerate(row_data["name_lines"]):
+                    draw.text((col_x[0], y + j * 24), nl, font=font_body, fill=TEXT_COLOR)
+                # 数量（垂直居中）
+                tw, _ = get_text_size(draw, row_data["qty"], font_body)
+                tx = col_x[1] + (col_w[1] - tw) // 2
+                draw.text((tx, y + (row_h - 24) // 2), row_data["qty"], font=font_body, fill=TEXT_COLOR)
+                # 原价（垂直居中+右对齐）
+                tw, _ = get_text_size(draw, row_data["orig"], font_body)
+                tx = col_x[2] + col_w[2] - tw
+                draw.text((tx, y + (row_h - 24) // 2), row_data["orig"], font=font_body, fill=TEXT_COLOR)
+                # 折扣价（垂直居中+右对齐）
+                tw, _ = get_text_size(draw, row_data["disc"], font_body)
+                tx = col_x[3] + col_w[3] - tw
+                draw.text((tx, y + (row_h - 24) // 2), row_data["disc"], font=font_body, fill=TEXT_COLOR)
 
         img.save(output_path, 'PNG')
         return output_path
 
     def save_order_image(self, order):
-        """保存订单长图到相册"""
+        """保存订单长图：PC端弹出目录选择，Android端保存到相册并触发扫描"""
         from kivy.logger import Logger
+        from kivy.utils import platform
+        from datetime import datetime as dt_now
+        import os
+
         try:
-            from plyer import storagepath
-            from datetime import datetime as dt_now
-            import os
-
-            pics_dir = storagepath.get_pictures_dir()
-            if not pics_dir:
-                pics_dir = os.path.join(os.path.expanduser('~'), 'Pictures')
-
-            save_dir = os.path.join(pics_dir, 'ShopCart')
-            os.makedirs(save_dir, exist_ok=True)
-
             timestamp = dt_now.now().strftime('%Y%m%d_%H%M%S')
             filename = f"order_{order.order_id[:8]}_{timestamp}.png"
-            filepath = os.path.join(save_dir, filename)
 
-            self._generate_order_image(order, filepath)
-            Logger.info(f"OrdersScreen: 订单长图已保存: {filepath}")
+            if platform == 'android':
+                # Android: 保存到外部存储 Pictures/ShopCart/
+                try:
+                    from android.storage import primary_external_storage_path
+                    storage = primary_external_storage_path()
+                except Exception:
+                    storage = os.environ.get('EXTERNAL_STORAGE', '/sdcard')
 
-            MDSnackbar(
-                MDLabel(text=f"长图已保存到相册/ShopCart/{filename}"),
-                duration=3,
-            ).open()
+                save_dir = os.path.join(storage, "Pictures", "ShopCart")
+                os.makedirs(save_dir, exist_ok=True)
+                filepath = os.path.join(save_dir, filename)
+
+                self._generate_order_image(order, filepath)
+                Logger.info(f"OrdersScreen: 订单长图已保存: {filepath}")
+
+                # 通知媒体扫描，让相册可见
+                try:
+                    from jnius import autoclass
+                    from android import mActivity
+                    MediaScannerConnection = autoclass('android.media.MediaScannerConnection')
+                    MediaScannerConnection.scanFile(mActivity, [filepath], ['image/png'], None)
+                except Exception as scan_err:
+                    Logger.warning(f"OrdersScreen: 媒体扫描通知失败: {scan_err}")
+
+                MDSnackbar(
+                    MDLabel(text=f"已保存到相册/ShopCart/{filename}"),
+                    duration=3,
+                ).open()
+            else:
+                # PC端：弹出保存文件对话框
+                default_path = os.path.join(os.path.expanduser('~'), 'Pictures', filename)
+
+                def on_selection(selection):
+                    if selection:
+                        path = selection[0]
+                        if not path.lower().endswith('.png'):
+                            path += '.png'
+                        try:
+                            self._generate_order_image(order, path)
+                            Logger.info(f"OrdersScreen: 订单长图已保存: {path}")
+                            MDSnackbar(
+                                MDLabel(text=f"已保存: {path}"),
+                                duration=3,
+                            ).open()
+                        except Exception as save_err:
+                            Logger.error(f"OrdersScreen: 保存长图失败: {save_err}")
+                            MDSnackbar(
+                                MDLabel(text=f"保存失败: {save_err}"),
+                                duration=3,
+                            ).open()
+
+                try:
+                    filechooser.save_file(
+                        title="保存订单长图",
+                        filters=[["PNG图片", "*.png"]],
+                        path=default_path,
+                        on_selection=on_selection
+                    )
+                except Exception as chooser_err:
+                    Logger.warning(f"OrdersScreen: 文件选择器失败，使用默认路径: {chooser_err}")
+                    # 备选：直接保存到默认路径
+                    self._generate_order_image(order, default_path)
+                    MDSnackbar(
+                        MDLabel(text=f"已保存到: {default_path}"),
+                        duration=3,
+                    ).open()
         except Exception as e:
             Logger.error(f"OrdersScreen: 保存订单长图失败: {e}")
             import traceback
@@ -1160,6 +1379,8 @@ class JSONToCSVApp(MDApp):
 
         self.dialog = MDDialog(
             title="保存CSV文件",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             text="请选择保存位置和文件名",
             buttons=[
                 MDFlatButton(

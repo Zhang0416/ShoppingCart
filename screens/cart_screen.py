@@ -301,6 +301,8 @@ class CartScreen(Screen):
         if not orders:
             dialog = MDDialog(
                 title="导入历史订单",
+                size_hint_x=0.9,
+                background_color=(0, 0, 0, 0),
                 text="暂无历史订单",
                 buttons=[
                     MDFlatButton(text="关闭", on_release=lambda x: dialog.dismiss())
@@ -331,8 +333,8 @@ class CartScreen(Screen):
         self.import_orders_dialog = MDDialog(
             title="选择要导入的订单",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -455,8 +457,8 @@ class CartScreen(Screen):
         self.import_detail_dialog = MDDialog(
             title="订单详情",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),

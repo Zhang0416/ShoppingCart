@@ -246,6 +246,8 @@ class ProfileScreen(Screen):
 
         dialog = MDDialog(
             title="用户信息",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             text=f"用户名：{app.current_user.get('name', '')}\n"
                  f"手机号：{app.current_user.get('phone', '')}\n"
                  f"邮箱：{app.current_user.get('email', '未设置')}\n"
@@ -265,6 +267,8 @@ class ProfileScreen(Screen):
         """修改密码"""
         dialog = MDDialog(
             title="修改密码",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(orientation='vertical',
                                     spacing=dp(10),
@@ -346,6 +350,8 @@ class ProfileScreen(Screen):
 
         dialog = MDDialog(
             title="修改个人信息",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',
@@ -512,8 +518,8 @@ class ProfileScreen(Screen):
         self.show_addr_dialog = MDDialog(
             title="收货地址管理",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -576,6 +582,8 @@ class ProfileScreen(Screen):
         # 编辑对话框
         self.edit_dialog = MDDialog(
             title="编辑",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=content_layout,
             buttons=[
@@ -611,6 +619,8 @@ class ProfileScreen(Screen):
         # 确认删除 对话框
         self.confirm_delete_dialog = MDDialog(
             title="确认删除",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',
@@ -645,6 +655,8 @@ class ProfileScreen(Screen):
         """显示新增地址对话框"""
         self.dialog = MDDialog(
             title="新增地址",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',
@@ -737,6 +749,8 @@ class ProfileScreen(Screen):
         """显示数据管理"""
         dialog = MDDialog(
             title="数据管理",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',
@@ -831,8 +845,8 @@ class ProfileScreen(Screen):
                  "开发者: ShoppingCart Team\n"
                  "联系方式: support@shoppingcart.com\n"
                  "官方网站: https://www.shoppingcart.com",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             buttons=[
                 MDFlatButton(text="确定", on_release=lambda x: dialog.dismiss())
             ]
@@ -845,8 +859,8 @@ class ProfileScreen(Screen):
         dialog = MDDialog(
             title="帮助中心",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(orientation='vertical',
                                     spacing=dp(10),
                                     size_hint_y=None,
@@ -900,8 +914,8 @@ class ProfileScreen(Screen):
         dialog = MDDialog(
             title="反馈建议",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),
@@ -974,6 +988,8 @@ class ProfileScreen(Screen):
 
         dialog = MDDialog(
             title="退出登录",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             text=f"确定要退出登录吗？\n当前用户：{app.current_user['name']}",
             buttons=[
                 MDFlatButton(
@@ -1092,8 +1108,8 @@ class ProfileScreen(Screen):
         self.bluetooth_printer_dialog = MDDialog(
             title="连接蓝牙打印机",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=content,
             buttons=[
                 MDFlatButton(

@@ -378,6 +378,8 @@ class LoginScreen(Screen):
         """显示注册对话框"""
         self.dialog = MDDialog(
             title="注册账号",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',

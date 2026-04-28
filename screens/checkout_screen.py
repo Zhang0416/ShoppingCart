@@ -19,6 +19,7 @@ class CheckoutScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "checkout"
+        self.selected_payment = "cash"
         self._build_ui()
 
     def _build_ui(self):
@@ -56,24 +57,64 @@ class CheckoutScreen(Screen):
         toolbar.add_widget(back_btn)
         toolbar.add_widget(title)
 
-        # 订单信息卡片
-        order_card = MDCard(
+        # 1. 收货人信息卡片
+        self.receiver_card = MDCard(
             orientation='vertical',
             size_hint=(1, None),
-            height=dp(120),
-            padding=dp(10),
-            spacing=dp(10),
+            height=dp(130),
+            padding=dp(15),
+            spacing=dp(5),
             elevation=dp(4),
             radius=[dp(10)]
         )
+        receiver_title = MDLabel(
+            text="收货人信息",
+            theme_text_color="Primary",
+            font_style="Subtitle1",
+            size_hint=(1, None),
+            height=dp(30)
+        )
+        self.receiver_name_label = MDLabel(
+            text="收货人：--",
+            theme_text_color="Secondary",
+            font_style="Caption",
+            size_hint=(1, None),
+            height=dp(22)
+        )
+        self.receiver_phone_label = MDLabel(
+            text="电话：--",
+            theme_text_color="Secondary",
+            font_style="Caption",
+            size_hint=(1, None),
+            height=dp(22)
+        )
+        self.receiver_address_label = MDLabel(
+            text="地址：--",
+            theme_text_color="Secondary",
+            font_style="Caption",
+            size_hint_y=None,
+            height=dp(22)
+        )
+        # 地址自适应高度，并同步更新卡片高度
+        self.receiver_address_label.bind(
+            width=lambda inst, w: setattr(inst, 'text_size', (w, None)),
+            texture_size=lambda inst, ts: (
+                setattr(inst, 'height', max(ts[1], dp(22))),
+                setattr(self.receiver_card, 'height', dp(110) + max(ts[1], dp(22)))
+            )
+        )
+        self.receiver_card.add_widget(receiver_title)
+        self.receiver_card.add_widget(self.receiver_name_label)
+        self.receiver_card.add_widget(self.receiver_phone_label)
+        self.receiver_card.add_widget(self.receiver_address_label)
 
-        # 商品详情卡片
+        # 2. 商品详情卡片
         self.items_card = MDCard(
             orientation='vertical',
             size_hint=(1, None),
             height=dp(80),
-            padding=dp(20),
-            spacing=dp(10),
+            padding=dp(10),
+            spacing=dp(5),
             elevation=dp(4),
             radius=[dp(10)]
         )
@@ -88,13 +129,30 @@ class CheckoutScreen(Screen):
         self.items_card.add_widget(items_title)
 
         self.items_table_layout = MDBoxLayout(
-            orientation='horizontal',
+            orientation='vertical',
             size_hint=(1, None),
             height=dp(0),
-            padding=dp(10),
-            spacing=dp(0)
+            padding=dp(5),
+            spacing=dp(2)
+        )
+        self.items_table_layout.bind(
+            minimum_height=self.items_table_layout.setter('height')
+        )
+        self.items_table_layout.bind(
+            height=lambda inst, h: setattr(self.items_card, 'height', h + dp(55))
         )
         self.items_card.add_widget(self.items_table_layout)
+
+        # 3. 订单金额卡片
+        order_card = MDCard(
+            orientation='vertical',
+            size_hint=(1, None),
+            height=dp(120),
+            padding=dp(15),
+            spacing=dp(10),
+            elevation=dp(4),
+            radius=[dp(10)]
+        )
 
         # 商品总价
         self.subtotal_label = MDLabel(
@@ -103,34 +161,19 @@ class CheckoutScreen(Screen):
             font_style="Subtitle1"
         )
 
-        # 运费
-        shipping_label = MDLabel(
-            text="运费: ¥0.00",
-            theme_text_color="Primary",
-            font_style="Subtitle1"
-        )
-
         # 优惠
         discount_layout = MDBoxLayout(
             orientation='horizontal',
             size_hint=(1, None),
-            height=dp(20),
+            height=dp(22),
             spacing=dp(10)
         )
         self.discount_label = MDLabel(
             text="优惠金额: ¥0.00",
             theme_text_color="Secondary",
             font_style="Subtitle1",
-            # size_hint=(0.4, 1)
         )
-        # self.discount_value_label = MDLabel(
-        #     text="¥0.00",
-        #     theme_text_color="Primary",
-        #     font_style="Subtitle2",
-        #     size_hint=(0.6, 1)
-        # )
         discount_layout.add_widget(self.discount_label)
-        # discount_layout.add_widget(self.discount_value_label)
 
         # 总计
         self.total_label = MDLabel(
@@ -140,59 +183,14 @@ class CheckoutScreen(Screen):
         )
 
         order_card.add_widget(self.subtotal_label)
-        # order_card.add_widget(shipping_label)
         order_card.add_widget(discount_layout)
         order_card.add_widget(self.total_label)
-
-        # 支付方式卡片
-        payment_card = MDCard(
-            orientation='vertical',
-            size_hint=(1, None),
-            height=dp(200),
-            padding=dp(20),
-            spacing=dp(10),
-            elevation=dp(4),
-            radius=[dp(10)]
-        )
-
-        payment_title = MDLabel(
-            text="支付方式",
-            theme_text_color="Primary",
-            font_style="Subtitle1"
-        )
-
-        # 支付方式选择
-        payment_layout = MDBoxLayout(orientation='vertical', spacing=10)
-
-        self.payment_methods = [
-            ("wechat", "微信支付", "wechat"),
-            ("alipay", "支付宝", "alipay"),
-            ("card", "银行卡支付", "credit-card"),
-            ("cash", "货到付款", "cash")
-        ]
-
-        self.selected_payment = "cash"
-
-        for method_id, method_name, icon in self.payment_methods:
-            method_btn = MDRaisedButton(
-                text=method_name,
-                icon=icon,
-                size_hint=(1, None),
-                height=dp(40)
-            )
-            method_btn.bind(
-                on_release=lambda x, m=method_id: self.select_payment(m)
-            )
-            payment_layout.add_widget(method_btn)
-
-        payment_card.add_widget(payment_title)
-        payment_card.add_widget(payment_layout)
 
         # 提交订单按钮
         submit_btn = MDRaisedButton(
             text="提交订单",
             size_hint=(1, None),
-            height=dp(150),
+            height=dp(50),
             md_bg_color=(0.2, 0.8, 0.4, 1),
             pos_hint={'center_x': 0.5}
         )
@@ -204,10 +202,9 @@ class CheckoutScreen(Screen):
         )
 
         main_layout.add_widget(toolbar)
-        main_layout.add_widget(order_card)
+        main_layout.add_widget(self.receiver_card)
         main_layout.add_widget(self.items_card)
-        # main_layout.add_widget(address_card)
-        # main_layout.add_widget(payment_card)
+        main_layout.add_widget(order_card)
         main_layout.add_widget(empty_label)
         main_layout.add_widget(submit_btn)
 
@@ -222,6 +219,24 @@ class CheckoutScreen(Screen):
         from kivy.app import App
         app = App.get_running_app()
 
+        # 更新收货人信息
+        cart_screen = app.screen_manager.get_screen("cart")
+        address_text = cart_screen.address_label.text
+        if address_text and '~' in address_text and address_text != "选择收件人信息":
+            parts = address_text.split('~')
+            if len(parts) >= 3:
+                self.receiver_name_label.text = f"收货人：{parts[0]}"
+                self.receiver_phone_label.text = f"电话：{parts[1]}"
+                self.receiver_address_label.text = f"地址：{'~'.join(parts[2:])}"
+            else:
+                self.receiver_name_label.text = f"收货人：{parts[0] if parts else '--'}"
+                self.receiver_phone_label.text = f"电话：{parts[1] if len(parts) > 1 else '--'}"
+                self.receiver_address_label.text = f"地址：{address_text}"
+        else:
+            self.receiver_name_label.text = "收货人：--"
+            self.receiver_phone_label.text = "电话：--"
+            self.receiver_address_label.text = "地址：--"
+
         original_subtotal = sum(item.price * item.quantity for item in app.cart.items.values())
         item_discount = app.cart.item_discount
         final_total = original_subtotal - item_discount
@@ -233,11 +248,10 @@ class CheckoutScreen(Screen):
         self._update_items_table(app)
 
     def _update_items_table(self, app):
-        """更新商品详情表格"""
+        """更新商品详情表格——逐行独立布局，名称自适应高度"""
         self.items_table_layout.clear_widgets()
 
         if not app.cart.items:
-            self.items_card.height = dp(80)
             empty_label = MDLabel(
                 text="暂无商品",
                 theme_text_color="Hint",
@@ -245,34 +259,87 @@ class CheckoutScreen(Screen):
                 halign="center"
             )
             self.items_table_layout.add_widget(empty_label)
-            self.items_table_layout.height = dp(30)
             return
 
-        table_items = [["\n      名称", "\n 数量", "\n    原价", "\n   折扣价"]]
+        # 表头
+        header = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(20),
+            spacing=dp(2)
+        )
+        headers = [("名称", 0.4), ("数量", 0.15), ("原价", 0.225), ("折扣价", 0.225)]
+        for text, ratio in headers:
+            lbl = MDLabel(
+                text=text,
+                theme_text_color="Secondary",
+                font_style="Caption",
+                size_hint=(ratio, 1),
+                halign="center",
+                bold=True
+            )
+            header.add_widget(lbl)
+        self.items_table_layout.add_widget(header)
+
+        # 数据行
         for item in app.cart.items.values():
             original_ss = float(item.price) * item.quantity
             discount_price = item.discount_price if item.discount_price is not None else item.price
             discount_ss = float(discount_price) * item.quantity
-            table_items.append([
-                f"• {item.product_name}",
-                f" × {item.quantity}",
-                f" ¥{original_ss:.1f}",
-                f" ¥{discount_ss:.1f}"
-            ])
 
-        size_x_arr = [0.4, 0.15, 0.225, 0.225]
-        for i, cols in enumerate(list(zip(*table_items))):
-            item_text = MDLabel(
-                text="\n".join(cols),
-                theme_text_color="Secondary",
-                size_hint=(size_x_arr[i], 1),
-                font_style="Caption",
+            row = MDBoxLayout(
+                orientation='horizontal',
+                size_hint=(1, None),
+                height=dp(20),
+                spacing=dp(2)
             )
-            self.items_table_layout.add_widget(item_text)
 
-        table_height = dp(20 * (len(app.cart.items) + 1))
-        self.items_table_layout.height = table_height
-        self.items_card.height = table_height + dp(80)
+            name_lbl = MDLabel(
+                text=f"• {item.product_name}",
+                theme_text_color="Secondary",
+                font_style="Caption",
+                size_hint=(0.4, None),
+                valign="center",
+                height=dp(20)
+            )
+            name_lbl.bind(
+                width=lambda inst, w: setattr(inst, 'text_size', (w, None)),
+                texture_size=lambda inst, ts, r=row: [
+                    setattr(inst, 'height', max(ts[1], dp(20))),
+                    setattr(r, 'height', max(ts[1], dp(20)))
+                ]
+            )
+
+            qty_lbl = MDLabel(
+                text=f"×{item.quantity}",
+                theme_text_color="Secondary",
+                font_style="Caption",
+                size_hint=(0.15, 1),
+                halign="center",
+                valign="center"
+            )
+            orig_lbl = MDLabel(
+                text=f"¥{original_ss:.1f}",
+                theme_text_color="Secondary",
+                font_style="Caption",
+                size_hint=(0.225, 1),
+                halign="right",
+                valign="center"
+            )
+            disc_lbl = MDLabel(
+                text=f"¥{discount_ss:.1f}",
+                theme_text_color="Secondary",
+                font_style="Caption",
+                size_hint=(0.225, 1),
+                halign="right",
+                valign="center"
+            )
+
+            row.add_widget(name_lbl)
+            row.add_widget(qty_lbl)
+            row.add_widget(orig_lbl)
+            row.add_widget(disc_lbl)
+            self.items_table_layout.add_widget(row)
 
     def select_payment(self, method_id):
         """选择支付方式"""
@@ -330,8 +397,8 @@ class CheckoutScreen(Screen):
         self.confirm_order_dialog = MDDialog(
             title="订单创建成功",
             type="custom",
-            size_hint_x=None,
-            width=dp(320),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(10),

@@ -779,6 +779,8 @@ class InventoryScreen(Screen):
         """显示添加对话框（选择添加商品还是分类）"""
         dialog = MDDialog(
             title="添加内容",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             text="请选择要添加的内容类型：",
             buttons=[
                 MDFlatButton(
@@ -813,8 +815,8 @@ class InventoryScreen(Screen):
         dialog = MDDialog(
             title="添加商品",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(0),
@@ -1150,6 +1152,8 @@ class InventoryScreen(Screen):
         """显示图片来源选择对话框"""
         dialog = MDDialog(
             title="选择图片来源",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             buttons=[
                 MDFlatButton(
                     text="取消",
@@ -1357,6 +1361,8 @@ class InventoryScreen(Screen):
         """调整库存"""
         dialog = MDDialog(
             title="调整库存",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',
@@ -1477,8 +1483,8 @@ class InventoryScreen(Screen):
         dialog = MDDialog(
             title="编辑商品信息",
             type="custom",
-            size_hint_x=None,
-            width=dp(360),
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             content_cls=MDBoxLayout(
                 orientation='vertical',
                 spacing=dp(15),
@@ -1600,6 +1606,8 @@ class InventoryScreen(Screen):
         """显示添加分类对话框"""
         dialog = MDDialog(
             title="添加分类",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',
@@ -1681,6 +1689,8 @@ class InventoryScreen(Screen):
         """编辑分类"""
         dialog = MDDialog(
             title="编辑分类",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             type="custom",
             content_cls=MDBoxLayout(
                 orientation='vertical',
@@ -1747,6 +1757,8 @@ class InventoryScreen(Screen):
         """删除商品"""
         dialog = MDDialog(
             title="删除商品",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             text=f"确定要删除商品 '{product.name}' 吗？\n此操作不可撤销。",
             buttons=[
                 MDFlatButton(
@@ -1781,6 +1793,8 @@ class InventoryScreen(Screen):
         """删除分类"""
         dialog = MDDialog(
             title="删除分类",
+            size_hint_x=0.9,
+            background_color=(0, 0, 0, 0),
             text=f"确定要删除分类 '{category.name}' 吗？\n",
             buttons=[
                 MDFlatButton(

@@ -13,6 +13,8 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.metrics import dp, sp
 from kivy.clock import Clock
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.graphics import Color, RoundedRectangle
 
 from .assets.config_chinese import CHINESE_FONT_NAME
 from .components.models import ProductCategory
@@ -60,39 +62,51 @@ class ProductScreen(Screen):
             size_hint=(0.6, 1)
         )
 
-        # 购物车按钮
+        # 购物车按钮 + 徽章容器（RelativeLayout 实现徽章叠加在按钮右上角）
+        cart_container = RelativeLayout(
+            size_hint=(None, None),
+            size=(dp(48), dp(48))
+        )
+
         cart_btn = MDIconButton(
             icon="cart",
             theme_text_color="Custom",
-            text_color=(1, 1, 1, 1)
+            text_color=(1, 1, 1, 1),
+            pos_hint={"center_x": 0.5, "center_y": 0.5}
         )
         cart_btn.bind(on_release=self.show_cart)
 
-        # 徽章容器
-        self.badge_layout = MDBoxLayout(
-            orientation="vertical",
-            size_hint=(None, None),
-            size=(dp(20), dp(5)),
-            pos_hint={"right": 1, "top": 1},
-            padding=0
-        )
-
-        # 徽章标签，用于显示购物车内商品数量
+        # 徽章数字：红底白字、右上角、1位圆形/2位+圆角矩形
         self.badge_label = MDLabel(
             text='',
-            font_style="Overline",
-            bold=True,
-            halign="right",
-            size_hint=(1, 1),
+            halign="center",
+            valign="middle",
             theme_text_color="Custom",
-            text_color=(1, 1, 1, 1)  # 白色文字
+            text_color=(1, 1, 1, 1),  # 白色文字
+            bold=True,
+            font_size=sp(11),
+            size_hint=(None, None),
+            size=(dp(20), dp(20)),
+            pos_hint={"right": 0.95, "top": 0.95},
+            opacity=0  # 默认隐藏
         )
-        self.badge_layout.add_widget(self.badge_label)
+
+        # 绘制红色背景（canvas.before 保证在文字下方）
+        with self.badge_label.canvas.before:
+            Color(0.9, 0.2, 0.1, 1)
+            self.badge_bg = RoundedRectangle(
+                pos=self.badge_label.pos,
+                size=self.badge_label.size,
+                radius=[dp(10)] * 4
+            )
+        self.badge_label.bind(pos=self._update_badge_bg, size=self._update_badge_bg)
+
+        cart_container.add_widget(cart_btn)
+        cart_container.add_widget(self.badge_label)
 
         toolbar.add_widget(back_btn)
         toolbar.add_widget(title)
-        toolbar.add_widget(self.badge_layout)
-        toolbar.add_widget(cart_btn)
+        toolbar.add_widget(cart_container)
 
         # 搜索和筛选栏
         search_card = MDCard(
@@ -335,12 +349,28 @@ class ProductScreen(Screen):
 
         self._load_products_batch(filtered_products)
 
+    def _update_badge_bg(self, instance, value):
+        """同步更新徽章背景的位置和大小"""
+        self.badge_bg.pos = instance.pos
+        self.badge_bg.size = instance.size
+
     def update_badge_color_text(self, val):
+        from kivy.core.text import Label as CoreLabel
         if val > 0:
             self.badge_label.text = str(val)
-            self.badge_label.text_color = (0.8, 0.2, 0.1, 1)
+            self.badge_label.opacity = 1
+            lbl = CoreLabel(text=str(val), font_size=sp(11), bold=True)
+            lbl.refresh()
+            tw = lbl.texture.size[0]
+            if val < 10:
+                # 1位数字：正圆形（宽=高）
+                self.badge_label.size = (dp(20), dp(20))
+            else:
+                # 2位及以上：胶囊形圆角矩形
+                self.badge_label.size = (max(dp(28), tw + dp(12)), dp(20))
         else:
             self.badge_label.text = ''
+            self.badge_label.opacity = 0
 
     def go_back(self, *args):
         """返回登录页"""
