@@ -8,6 +8,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.snackbar import MDSnackbar
 from kivy.metrics import dp
+from kivy.app import App
 
 from .assets.config_chinese import CHINESE_FONT_NAME
 
@@ -137,7 +138,6 @@ class HomeScreen(Screen):
 
     def on_enter(self):
         """进入页面时更新用户信息"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if app.current_user:
@@ -154,31 +154,26 @@ class HomeScreen(Screen):
 
     def show_cart(self):
         """显示购物车"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_cart()
 
     def show_products(self, *args):
         """浏览商品"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_products()
 
     def show_orders(self, *args):
         """库存管理"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_orders()
 
     def show_profile(self, *args):
         """个人中心"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_profile()
 
     def show_inventory(self, *args):
         """显示我的订单"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_inventory()
 

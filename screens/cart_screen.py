@@ -12,8 +12,10 @@ from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.metrics import dp, sp
 from datetime import datetime
+from kivy.app import App
 
 from .assets.config_chinese import CHINESE_FONT_NAME
+from .components.cart_item import CartItemWidget
 
 
 class CartScreen(Screen):
@@ -38,8 +40,7 @@ class CartScreen(Screen):
         )
 
         # 购物车内容区域
-        from kivy.uix.scrollview import ScrollView
-        self.scroll_view = ScrollView()
+        self.scroll_view = MDScrollView()
         self.cart_layout = MDBoxLayout(
             orientation='vertical',
             spacing=dp(10),
@@ -138,8 +139,6 @@ class CartScreen(Screen):
 
     def update_cart(self):
         """更新购物车显示——增量更新，避免全量重建 widget"""
-        from kivy.app import App
-        from .components.cart_item import CartItemWidget
         app = App.get_running_app()
 
         # 检查购物车是否为空
@@ -218,7 +217,6 @@ class CartScreen(Screen):
     # ========== 地址相关（从 CheckoutScreen 迁移） ==========
 
     def open_address_menu(self, *args):
-        from kivy.app import App
         app = App.get_running_app()
 
         user = None
@@ -259,7 +257,6 @@ class CartScreen(Screen):
 
     def _get_current_recipient_orders(self):
         """获取当前收货人名下的所有订单"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if not app.current_user:
@@ -285,7 +282,6 @@ class CartScreen(Screen):
 
     def show_import_orders(self, *args):
         """显示可导入的历史订单列表"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if not app.current_user:
@@ -483,7 +479,6 @@ class CartScreen(Screen):
 
     def do_import_order(self, order):
         """执行导入：将订单中折扣价应用到购物车"""
-        from kivy.app import App
         app = App.get_running_app()
 
         imported_count = 0
@@ -511,7 +506,6 @@ class CartScreen(Screen):
 
     def do_import_all_orders(self):
         """全部导入：将该收货人名下所有订单中最低折扣价应用到购物车"""
-        from kivy.app import App
         app = App.get_running_app()
 
         orders = self._get_current_recipient_orders()
@@ -560,13 +554,11 @@ class CartScreen(Screen):
 
     def go_back(self, *args):
         """返回商品页"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_products()
 
     def checkout(self, *args):
         """结算"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if app.cart.item_count == 0:

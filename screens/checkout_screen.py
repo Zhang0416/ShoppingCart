@@ -11,6 +11,10 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.list import MDList, ThreeLineListItem
 from kivymd.uix.scrollview import MDScrollView
 from kivy.metrics import dp
+from kivy.app import App
+from datetime import datetime
+import hashlib
+import os
 
 from .assets.config_chinese import CHINESE_FONT_NAME
 
@@ -216,7 +220,6 @@ class CheckoutScreen(Screen):
 
     def update_order_info(self):
         """更新订单信息"""
-        from kivy.app import App
         app = App.get_running_app()
 
         # 更新收货人信息
@@ -347,7 +350,6 @@ class CheckoutScreen(Screen):
 
     def submit_order(self, *args):
         """提交订单"""
-        from kivy.app import App
         app = App.get_running_app()
 
         # 检查库存
@@ -361,7 +363,6 @@ class CheckoutScreen(Screen):
                 return
 
         # 创建订单数据
-        from datetime import datetime
         original_subtotal = sum(item.price * item.quantity for item in app.cart.items.values())
         item_discount = app.cart.item_discount
         final_total = original_subtotal - item_discount
@@ -429,7 +430,6 @@ class CheckoutScreen(Screen):
 
     def view_order(self, order):
         """ 调用 订单管理界面 的显示详情函数 """
-        from kivy.app import App
         app = App.get_running_app()
         orders_screen = app.screen_manager.get_screen("orders")
         orders_screen.show_order_detail(order, has_delete=False)  # 仅供查看，不包含删除按钮
@@ -440,8 +440,6 @@ class CheckoutScreen(Screen):
         :param length: 长度（SHA-1默认40位，SHA-256默认64位，建议≤40）
         :return: 十六进制随机字符串
         """
-        import hashlib
-        import os
         # 1. 生成高熵随机字节（20字节=160位，对应SHA-1的40位哈希）
         random_bytes = os.urandom(20)  # os.urandom是系统级高熵随机数，比random模块更安全
 
@@ -458,6 +456,5 @@ class CheckoutScreen(Screen):
             self.confirm_order_dialog.dismiss()
 
         """返回购物车"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_cart()
