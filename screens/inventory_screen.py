@@ -22,6 +22,7 @@ from kivy.uix.widget import Widget
 from kivy.utils import platform
 from kivy.logger import Logger
 from kivy.clock import Clock
+from kivy.app import App
 import json
 import os
 import shutil
@@ -183,7 +184,6 @@ class StatsTab(MDFloatLayout, MDTabsBase):
 
     def add_product_callback(self, *args):
         """添加商品回调"""
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -191,7 +191,6 @@ class StatsTab(MDFloatLayout, MDTabsBase):
 
     def add_category_callback(self, *args):
         """添加分类回调"""
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -269,7 +268,6 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
 
     def show_category_menu(self, *args):
         """显示分类菜单（独立创建，不依赖 InventoryScreen.category_menu）"""
-        from kivy.app import App
         app = App.get_running_app()
 
         categories = app.inventory_manager.get_categories()
@@ -302,7 +300,6 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
         """按分类筛选商品"""
         self.category_filter_btn.text = category_name
 
-        from kivy.app import App
         app = App.get_running_app()
         products = app.inventory_manager.get_all_products()
 
@@ -452,7 +449,6 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
 
     def adjust_stock(self, product):
         """调整库存"""
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -461,7 +457,6 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
     def edit_product(self, product):
         """编辑商品"""
         # MDSnackbar(MDLabel(text="编辑功能开发中", text_color=(0.2, 0.6, 0.86, 1))).open()
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -469,7 +464,6 @@ class ProductsTab(MDFloatLayout, MDTabsBase):
 
     def delete_product(self, product):
         """删除商品"""
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -527,7 +521,6 @@ class CategoriesTab(MDFloatLayout, MDTabsBase):
 
     def add_category_callback(self, *args):
         """添加分类回调"""
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -595,7 +588,6 @@ class CategoriesTab(MDFloatLayout, MDTabsBase):
 
     def edit_category(self, category):
         """编辑分类"""
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -603,7 +595,6 @@ class CategoriesTab(MDFloatLayout, MDTabsBase):
 
     def delete_category(self, category):
         """删除分类"""
-        from kivy.app import App
         app = App.get_running_app()
         inventory_screen = app.root.get_screen("inventory")
         if inventory_screen:
@@ -694,7 +685,6 @@ class InventoryScreen(Screen):
         :param tab_only: only refresh specified tab, None means refresh all
         :param clear_cache: whether to clear cache and re-read from JSON
         """
-        from kivy.app import App
         app = App.get_running_app()
 
         if clear_cache:
@@ -731,7 +721,6 @@ class InventoryScreen(Screen):
 
     def setup_category_menu(self):
         """设置分类菜单"""
-        from kivy.app import App
         app = App.get_running_app()
 
         categories = app.inventory_manager.get_categories()
@@ -765,7 +754,6 @@ class InventoryScreen(Screen):
             self.products_tab.category_filter_btn.text = category_name
 
         # 重新加载商品
-        from kivy.app import App
         app = App.get_running_app()
         products = app.inventory_manager.get_all_products()
 
@@ -1008,7 +996,6 @@ class InventoryScreen(Screen):
 
     def open_category_menu(self, *args):
         # 分类选择按钮
-        from kivy.app import App
         app = App.get_running_app()
         categories = app.inventory_manager.get_categories()
 
@@ -1119,7 +1106,6 @@ class InventoryScreen(Screen):
             'specifications': {}
         }
 
-        from kivy.app import App
         app = App.get_running_app()
         new_product = app.inventory_manager.add_product(product_data)
 
@@ -1225,7 +1211,6 @@ class InventoryScreen(Screen):
         def do_take():
             try:
                 from plyer import camera
-                from kivy.app import App
                 app = App.get_running_app()
                 temp_file = os.path.join(app.user_data_dir, f"camera_{uuid.uuid4().hex[:8]}.jpg")
                 camera.take_picture(temp_file, self._on_camera_complete)
@@ -1274,7 +1259,6 @@ class InventoryScreen(Screen):
     def _get_image_base_dir(self):
         """获取图片存储根目录"""
         if platform == 'android':
-            from kivy.app import App
             app = App.get_running_app()
             return os.path.join(app.user_data_dir, 'screens', 'assets', 'image')
         else:
@@ -1454,7 +1438,6 @@ class InventoryScreen(Screen):
             MDSnackbar(MDLabel(text="请输入有效的数字", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
-        from kivy.app import App
         app = App.get_running_app()
 
         new_stock = product.stock
@@ -1590,7 +1573,6 @@ class InventoryScreen(Screen):
                 else:
                     product.specifications[tmp[0]] = ":".join(tmp[1:])
 
-        from kivy.app import App
         app = App.get_running_app()
 
         if app.inventory_manager.update_product_info(product):
@@ -1668,7 +1650,6 @@ class InventoryScreen(Screen):
             MDSnackbar(MDLabel(text="请输入分类名称", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
-        from kivy.app import App
         app = App.get_running_app()
 
         # 检查分类是否已存在
@@ -1777,7 +1758,6 @@ class InventoryScreen(Screen):
 
     def confirm_delete_product(self, dialog, product):
         """确认删除商品"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if app.inventory_manager.delete_product(product.id):
@@ -1819,7 +1799,6 @@ class InventoryScreen(Screen):
         dialog.dismiss()
         # MDSnackbar(MDLabel(text="删除功能开发中", text_color=(0.2, 0.6, 0.86, 1))).open()
 
-        from kivy.app import App
         app = App.get_running_app()
 
         app.inventory_manager.delete_category(category.name)
@@ -1831,6 +1810,5 @@ class InventoryScreen(Screen):
 
     def go_back(self):
         """返回主页"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_home()

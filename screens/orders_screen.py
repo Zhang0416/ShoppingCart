@@ -16,22 +16,26 @@ from kivymd.uix.chip import MDChip
 from kivymd.uix.snackbar import MDSnackbar
 from kivy.metrics import dp, sp
 from kivymd.app import MDApp
+from kivy.logger import Logger
+from kivy.graphics import Color, Line
 from kivy.lang import Builder
 from kivy.utils import platform
-from plyer import filechooser
 from kivy.clock import Clock
+from kivy.core.text import Label as CoreLabel
+from kivy.resources import resource_find
 
 import json
 import os
-from kivymd.app import MDApp
-from kivy.utils import platform
+import csv
+import traceback
+from datetime import datetime
+from io import StringIO
+
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.textfield import MDTextField
 from kivymd.toast import toast
 
-import csv
-from datetime import datetime
-from io import StringIO
+from .components.bluetooth_printer import get_printer_manager
 
 from .assets.config_chinese import CHINESE_FONT_NAME
 
@@ -123,12 +127,10 @@ class OrdersScreen(Screen):
 
     def on_enter(self):
         """进入页面时更新用户信息"""
-        from kivy.app import App
         app = App.get_running_app()
 
     def show_my_orders(self, *args):
         """显示我的订单"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if not app.current_user:
@@ -268,7 +270,6 @@ class OrdersScreen(Screen):
 
     def show_history_orders(self, *args):
         """显示历史订单"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if not app.current_user:
@@ -481,7 +482,6 @@ class OrdersScreen(Screen):
     def show_statis_orders(self, *args):
 
         """获取所有订单"""
-        from kivy.app import App
         app = App.get_running_app()
 
         if not app.current_user:
@@ -543,7 +543,6 @@ class OrdersScreen(Screen):
         self.statis_orders_dialog.open()
 
     def show_month_order_detail(self, month, id_list):
-        from kivy.app import App
         app = App.get_running_app()
 
         all_orders = app.order_manager.get_all_orders()
@@ -593,7 +592,6 @@ class OrdersScreen(Screen):
         """显示所有订单详情"""
         self.history_orders_dialog.dismiss()
 
-        from kivy.app import App
         app = App.get_running_app()
 
         all_orders = app.order_manager.get_all_orders()
@@ -644,16 +642,15 @@ class OrdersScreen(Screen):
 
     def show_order_detail(self, order, has_delete=True, prev_dialog="my"):
         """显示订单详情（自适应宽度 Dialog）"""
-        from kivy.graphics import Color, Line
 
         content = MDBoxLayout(
             orientation='vertical',
             spacing=dp(5),
             size_hint_y=None,
-            height=dp(420)
+            height=dp(520)
         )
 
-        scroll_view = MDScrollView(size_hint=(1, None), height=dp(365))
+        scroll_view = MDScrollView(size_hint=(1, None), height=dp(465))
         recent_list = MDList(size_hint_y=None)
         recent_list.bind(minimum_height=recent_list.setter('height'))
 
@@ -662,7 +659,7 @@ class OrdersScreen(Screen):
 
         # 订单信息
         infor_label = MDLabel(
-            text="------------ 订单信息 ------------",
+            text="-------------- 订单信息 --------------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
@@ -696,7 +693,7 @@ class OrdersScreen(Screen):
         # 商品列表
         recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(15)))
         items_label = MDLabel(
-            text="------------ 商品列表 ------------",
+            text="-------------- 商品列表 --------------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
@@ -796,7 +793,7 @@ class OrdersScreen(Screen):
         # 金额汇总
         recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(15)))
         summary_label = MDLabel(
-            text="------------ 金额汇总 ------------",
+            text="-------------- 金额汇总 --------------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
@@ -923,7 +920,6 @@ class OrdersScreen(Screen):
 
     def comfirm_delete_my_order(self, order, flag="my"):
 
-        from kivy.app import App
         app = App.get_running_app()
 
         app.order_manager.delete_order(order)
@@ -973,10 +969,6 @@ class OrdersScreen(Screen):
 
     def _print_order(self, order):
         """打印订单到蓝牙打印机"""
-        from kivy.logger import Logger
-        from kivy.app import App
-        from screens.components.bluetooth_printer import get_printer_manager
-
         Logger.info("OrdersScreen: _print_order 开始")
         mgr = get_printer_manager()
         Logger.info(f"OrdersScreen: mgr={mgr}")
@@ -1001,7 +993,6 @@ class OrdersScreen(Screen):
             Logger.info(f"OrdersScreen: print_order 返回 success={success}, error={error}")
         except Exception as e:
             Logger.error(f"OrdersScreen: print_order 调用异常: {e}")
-            import traceback
             Logger.error(traceback.format_exc())
             success = False
             error = str(e)
@@ -1018,15 +1009,11 @@ class OrdersScreen(Screen):
 
     def go_back(self):
         """返回主页"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_home()
 
     def _generate_order_image(self, order, output_path):
         """使用 Pillow 生成订单长图，格式与订单详情页面一致"""
-        from PIL import Image, ImageDraw, ImageFont
-        import os
-
         WIDTH = 384
         MARGIN = 16
         INNER_WIDTH = WIDTH - 2 * MARGIN
@@ -1039,7 +1026,6 @@ class OrdersScreen(Screen):
         # 加载中文字体
         font_path = None
         try:
-            from kivy.resources import resource_find
             font_path = resource_find('screens/assets/fonts/msyhbd.ttc')
         except Exception:
             pass
@@ -1119,7 +1105,7 @@ class OrdersScreen(Screen):
         y += 18
 
         # 订单信息
-        section_text = "------------ 订单信息 ------------"
+        section_text = "-------------- 订单信息 --------------"
         draw_items.append(("section_title", section_text, y))
         y += 32
 
@@ -1136,7 +1122,7 @@ class OrdersScreen(Screen):
 
         # 商品列表
         y += 8
-        section_text = "------------ 商品列表 ------------"
+        section_text = "-------------- 商品列表 --------------"
         draw_items.append(("section_title", section_text, y))
         y += 32
 
@@ -1166,7 +1152,7 @@ class OrdersScreen(Screen):
 
         # 金额汇总
         y += 8
-        section_text = "------------ 金额汇总 ------------"
+        section_text = "-------------- 金额汇总 --------------"
         draw_items.append(("section_title", section_text, y))
         y += 32
 
@@ -1240,11 +1226,6 @@ class OrdersScreen(Screen):
 
     def save_order_image(self, order):
         """保存订单长图：PC端弹出目录选择，Android端保存到相册并触发扫描"""
-        from kivy.logger import Logger
-        from kivy.utils import platform
-        from datetime import datetime as dt_now
-        import os
-
         try:
             timestamp = dt_now.now().strftime('%Y%m%d_%H%M%S')
             filename = f"order_{order.order_id[:8]}_{timestamp}.png"
@@ -1301,6 +1282,7 @@ class OrdersScreen(Screen):
                             ).open()
 
                 try:
+                    from plyer import filechooser
                     filechooser.save_file(
                         title="保存订单长图",
                         filters=[["PNG图片", "*.png"]],
@@ -1317,7 +1299,6 @@ class OrdersScreen(Screen):
                     ).open()
         except Exception as e:
             Logger.error(f"OrdersScreen: 保存订单长图失败: {e}")
-            import traceback
             Logger.error(traceback.format_exc())
             MDSnackbar(
                 MDLabel(text=f"保存失败: {e}"),
@@ -1431,10 +1412,10 @@ class JSONToCSVApp(MDApp):
                     f.write(self.csv_data)
 
             except Exception as e:
-                from kivymd.toast import toast
                 self.show_message(f"保存download目录失败: {str(e)}")
 
             # 使用plyer的文件选择器
+            from plyer import filechooser
             filechooser.save_file(
                 title="保存CSV文件",
                 filters=[("CSV files", "*.csv")],

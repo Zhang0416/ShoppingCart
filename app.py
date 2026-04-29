@@ -2,9 +2,19 @@ from kivy.uix.screenmanager import ScreenManager
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import MDSnackbar
+from kivymd.uix.dialog import MDDialog
 from kivy.metrics import sp
 from kivy.core.window import Window
 from kivy.utils import platform
+
+# Patch MDDialog: 默认 size_hint_y=None，避免 dialog 高度占满窗口
+# 导致 BaseDialog 的 RoundedRectangle 在 DialogContainer 之外露出黑色背景
+_original_md_dialog_init = MDDialog.__init__
+def _patched_md_dialog_init(self, *args, **kwargs):
+    if 'size_hint_y' not in kwargs and 'size_hint' not in kwargs:
+        kwargs['size_hint_y'] = None
+    _original_md_dialog_init(self, *args, **kwargs)
+MDDialog.__init__ = _patched_md_dialog_init
 
 from screens.assets.config_chinese import register_chinese_font, set_kivymd_global_font
 from screens.components.models import ShoppingCart, OrderManager, InventoryManager, Database

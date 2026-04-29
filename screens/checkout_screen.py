@@ -108,11 +108,11 @@ class CheckoutScreen(Screen):
         self.receiver_card.add_widget(self.receiver_phone_label)
         self.receiver_card.add_widget(self.receiver_address_label)
 
-        # 2. 商品详情卡片
+        # 2. 商品详情卡片（固定高度，内部可滚动）
         self.items_card = MDCard(
             orientation='vertical',
             size_hint=(1, None),
-            height=dp(80),
+            height=dp(360),
             padding=dp(10),
             spacing=dp(5),
             elevation=dp(4),
@@ -128,6 +128,7 @@ class CheckoutScreen(Screen):
         )
         self.items_card.add_widget(items_title)
 
+        self.items_scroll = MDScrollView(size_hint=(1, 1))
         self.items_table_layout = MDBoxLayout(
             orientation='vertical',
             size_hint=(1, None),
@@ -138,10 +139,8 @@ class CheckoutScreen(Screen):
         self.items_table_layout.bind(
             minimum_height=self.items_table_layout.setter('height')
         )
-        self.items_table_layout.bind(
-            height=lambda inst, h: setattr(self.items_card, 'height', h + dp(55))
-        )
-        self.items_card.add_widget(self.items_table_layout)
+        self.items_scroll.add_widget(self.items_table_layout)
+        self.items_card.add_widget(self.items_scroll)
 
         # 3. 订单金额卡片
         order_card = MDCard(
@@ -190,7 +189,8 @@ class CheckoutScreen(Screen):
         submit_btn = MDRaisedButton(
             text="提交订单",
             size_hint=(1, None),
-            height=dp(50),
+            height=dp(56),
+            font_size=dp(18),
             md_bg_color=(0.2, 0.8, 0.4, 1),
             pos_hint={'center_x': 0.5}
         )

@@ -1,5 +1,5 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.scrollview import ScrollView
+from kivymd.uix.scrollview import MDScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ListProperty
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -15,6 +15,9 @@ from kivy.metrics import dp, sp
 from kivy.clock import Clock
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.graphics import Color, RoundedRectangle
+from kivy.app import App
+from kivy.utils import platform
+from kivy.core.text import Label as CoreLabel
 
 from .assets.config_chinese import CHINESE_FONT_NAME
 from .components.models import ProductCategory
@@ -182,7 +185,7 @@ class ProductScreen(Screen):
         # tabs2 = ProductTabs(categories[4:])
 
         # 商品列表
-        self.product_scroll = ScrollView()
+        self.product_scroll = MDScrollView()
         self.product_grid = GridLayout(
             cols=2,
             spacing=dp(5),
@@ -220,10 +223,8 @@ class ProductScreen(Screen):
         if not products:
             return
 
-        from kivy.app import App
         app = App.get_running_app()
         # Android 低端设备每帧少加载几个，PC 可以多加载
-        from kivy.utils import platform
         batch_size = 3 if platform == 'android' else 6
         index = [0]
 
@@ -253,7 +254,6 @@ class ProductScreen(Screen):
 
     def load_products(self, category=None, featured=False):
         """加载商品（支持缓存和分批加载）"""
-        from kivy.app import App
         app = App.get_running_app()
 
         # 更新购物车徽章显示
@@ -281,7 +281,6 @@ class ProductScreen(Screen):
 
     def show_category_menu(self, *args):
         """获取分类菜单"""
-        from kivy.app import App
         app = App.get_running_app()
 
         categories = app.inventory_manager.get_categories()
@@ -330,7 +329,6 @@ class ProductScreen(Screen):
 
     def search_products(self, *args):
         """搜索商品"""
-        from kivy.app import App
         app = App.get_running_app()
 
         # 更新购物车徽章显示
@@ -355,7 +353,6 @@ class ProductScreen(Screen):
         self.badge_bg.size = instance.size
 
     def update_badge_color_text(self, val):
-        from kivy.core.text import Label as CoreLabel
         if val > 0:
             self.badge_label.text = str(val)
             self.badge_label.opacity = 1
@@ -374,13 +371,11 @@ class ProductScreen(Screen):
 
     def go_back(self, *args):
         """返回登录页"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_home()
 
     def show_cart(self, *args):
         """显示购物车"""
-        from kivy.app import App
         app = App.get_running_app()
         app.show_cart()
 
@@ -412,7 +407,6 @@ class ProductTabs(MDBoxLayout):
 
     def on_tab_click(self, category):
         """标签点击事件"""
-        from kivy.app import App
         app = App.get_running_app()
         product_screen = app.root.get_screen("products")
         product_screen.load_products(category, category == "热门")
