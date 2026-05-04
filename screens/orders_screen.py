@@ -1,11 +1,8 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.widget import Widget
-from kivy.uix.modalview import ModalView
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton, MDIconButton, MDFlatButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.list import (MDList, OneLineListItem, OneLineIconListItem, ThreeLineListItem,
                              ThreeLineAvatarIconListItem, IconLeftWidget, IconRightWidget)
 from kivymd.uix.scrollview import MDScrollView
@@ -14,15 +11,16 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.chip import MDChip
 from kivymd.uix.snackbar import MDSnackbar
+from kivymd.uix.textfield import MDTextField
 from kivy.metrics import dp, sp
 from kivymd.app import MDApp
 from kivy.logger import Logger
-from kivy.graphics import Color, Line
-from kivy.lang import Builder
 from kivy.utils import platform
 from kivy.clock import Clock
-from kivy.core.text import Label as CoreLabel
 from kivy.resources import resource_find
+from kivy.app import App
+
+from PIL import Image, ImageDraw, ImageFont
 
 import json
 import os
@@ -30,10 +28,6 @@ import csv
 import traceback
 from datetime import datetime
 from io import StringIO
-
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.uix.textfield import MDTextField
-from kivymd.toast import toast
 
 from .components.bluetooth_printer import get_printer_manager
 
@@ -53,7 +47,6 @@ class OrdersScreen(Screen):
         # 顶部工具栏
         toolbar = MDTopAppBar(
             title="订单管理",
-            elevation=dp(4),
             md_bg_color=(0.2, 0.6, 0.86, 1),
             left_action_items=[["arrow-left", lambda x: self.go_back()]],
             right_action_items=[["refresh", lambda x: self.refresh_orders()]]
@@ -61,7 +54,8 @@ class OrdersScreen(Screen):
 
         # 功能列表
         scroll_view = MDScrollView()
-        self.menu_list = MDList()
+        self.menu_list = MDList(size_hint_y=None)
+        self.menu_list.bind(minimum_height=self.menu_list.setter('height'))
 
         # 订单管理区
         order_section = OneLineListItem(
@@ -659,7 +653,7 @@ class OrdersScreen(Screen):
 
         # 订单信息
         infor_label = MDLabel(
-            text="-------------- 订单信息 --------------",
+            text="----------- 订单信息 -----------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
@@ -693,7 +687,7 @@ class OrdersScreen(Screen):
         # 商品列表
         recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(15)))
         items_label = MDLabel(
-            text="-------------- 商品列表 --------------",
+            text="----------- 商品列表 -----------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
@@ -793,7 +787,7 @@ class OrdersScreen(Screen):
         # 金额汇总
         recent_list.add_widget(MDLabel(size_hint_y=None, height=dp(15)))
         summary_label = MDLabel(
-            text="-------------- 金额汇总 --------------",
+            text="----------- 金额汇总 -----------",
             theme_text_color="Primary",
             font_style="Subtitle1",
             size_hint_y=None,
@@ -1227,7 +1221,7 @@ class OrdersScreen(Screen):
     def save_order_image(self, order):
         """保存订单长图：PC端弹出目录选择，Android端保存到相册并触发扫描"""
         try:
-            timestamp = dt_now.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             filename = f"order_{order.order_id[:8]}_{timestamp}.png"
 
             if platform == 'android':
@@ -1304,13 +1298,6 @@ class OrdersScreen(Screen):
                 MDLabel(text=f"保存失败: {e}"),
                 duration=3,
             ).open()
-
-
-# Android平台特定导入
-if platform == 'android':
-    from android.permissions import request_permissions, Permission
-    from android.storage import primary_external_storage_path
-    from android import mActivity
 
 
 class JSONToCSVApp(MDApp):

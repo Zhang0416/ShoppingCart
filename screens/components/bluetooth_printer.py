@@ -678,11 +678,16 @@ class BluetoothPrinterManager:
 
     def __init__(self):
         self._backend = None
-        self._init_backend()
+        self._backend_initialized = False
         self.connected_device = None  # {'name': ..., 'address': ...}
         self.connection_state = "disconnected"  # disconnected, scanning, connecting, connected, error
         self.last_error = ""
         self._on_state_changed = None
+
+    def _ensure_backend(self):
+        if not self._backend_initialized:
+            self._init_backend()
+            self._backend_initialized = True
 
     def _init_backend(self):
         if platform == 'android':
@@ -718,9 +723,11 @@ class BluetoothPrinterManager:
                 Logger.error(f"BluetoothPrinter: state callback error {e}")
 
     def is_available(self):
+        self._ensure_backend()
         return self._backend is not None
 
     def is_connected(self):
+        self._ensure_backend()
         if self._backend:
             return self._backend.is_connected()
         return False
@@ -735,6 +742,7 @@ class BluetoothPrinterManager:
         扫描蓝牙设备
         on_devices_found(devices_list) -> devices_list = [{'name':..., 'address':..., 'paired':...}, ...]
         """
+        self._ensure_backend()
         if not self._backend:
             self._set_state("error", error="蓝牙后端未初始化")
             if on_devices_found:
@@ -756,6 +764,7 @@ class BluetoothPrinterManager:
         device_info: {'name':..., 'address':...}
         on_result(success: bool, error_msg: str)
         """
+        self._ensure_backend()
         if not self._backend:
             self._set_state("error", error="蓝牙后端未初始化")
             if on_result:
@@ -775,6 +784,7 @@ class BluetoothPrinterManager:
         self._backend.connect(device_info['address'], callback=_callback)
 
     def disconnect(self):
+        self._ensure_backend()
         if self._backend:
             self._backend.disconnect()
         self.connected_device = None
@@ -786,6 +796,7 @@ class BluetoothPrinterManager:
         order: Order 对象 或 dict
         返回: (success: bool, error_msg: str)
         """
+        self._ensure_backend()
         if not self.is_connected():
             return False, "蓝牙打印机未连接"
         try:
