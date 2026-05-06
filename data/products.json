@@ -3,7 +3,7 @@
     "id": "p001",
     "name": "iPhone 15 Pro",
     "description": "A17 Pro芯片，钛金属设计，超视网膜XDR显示屏",
-    "price": 8999.0,
+    "price": 8099.1,
     "suggest": 8999.0,
     "category": "电子产品",
     "stock": 46,
@@ -44,10 +44,10 @@
     "id": "p003",
     "name": "男士休闲衬衫",
     "description": "纯棉材质，舒适透气，多色可选",
-    "price": 299.0,
+    "price": 269.1,
     "suggest": 299.0,
     "category": "服装服饰",
-    "stock": 95,
+    "stock": 92,
     "unit": "件",
     "images": [
       "./screens/assets/image/demo/tshirtman.JPEG"
@@ -79,7 +79,7 @@
     "price": 89.0,
     "suggest": 99.0,
     "category": "图书音像",
-    "stock": 189,
+    "stock": 188,
     "unit": "本",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -94,7 +94,7 @@
     "id": "p005",
     "name": "巧克力礼盒",
     "description": "比利时进口巧克力，精美包装",
-    "price": 199.0,
+    "price": 179.1,
     "suggest": 199.0,
     "category": "食品饮料",
     "stock": 144,
@@ -112,7 +112,7 @@
     "id": "p006",
     "name": "智能手表",
     "description": "心率监测，血氧饱和度，计步、睡眠，GPS定位，50米防水",
-    "price": 1299.0,
+    "price": 1169.1,
     "suggest": 1299.0,
     "category": "电子产品",
     "stock": 79,
@@ -132,7 +132,7 @@
     "id": "p007",
     "name": "运动鞋",
     "description": "透气网面，减震鞋底，跑步健身",
-    "price": 399.0,
+    "price": 359.1,
     "suggest": 399.0,
     "category": "服装服饰",
     "stock": 115,
@@ -150,10 +150,10 @@
     "id": "p008",
     "name": "无线耳机",
     "description": "降噪功能，30小时续航，蓝牙5.2",
-    "price": 599.0,
+    "price": 539.1,
     "suggest": 599.0,
     "category": "电子产品",
-    "stock": 196,
+    "stock": 195,
     "unit": "副",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -171,7 +171,7 @@
     "price": 2299.0,
     "suggest": 2599.0,
     "category": "电子产品",
-    "stock": 35,
+    "stock": 34,
     "unit": "台",
     "images": [
       "./screens/assets/image/no_pic1.jpg"
@@ -193,7 +193,7 @@
     "price": 1499.0,
     "suggest": 1699.0,
     "category": "电子产品",
-    "stock": 68,
+    "stock": 67,
     "unit": "副",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -247,7 +247,7 @@
     "price": 199.0,
     "suggest": 259.0,
     "category": "服装服饰",
-    "stock": 150,
+    "stock": 149,
     "unit": "条",
     "images": [
       "./screens/assets/image/no_pic.jpg"
@@ -429,7 +429,7 @@
     "stock": 180,
     "unit": "套",
     "images": [
-      "./screens/assets/image/no_pic1.jpg"
+      "./screens/assets/image/no_pic.jpg"
     ],
     "specifications": {
       "规格": "4格+6格",
@@ -450,7 +450,7 @@
     "stock": 85,
     "unit": "套",
     "images": [
-      "./screens/assets/image/no_pic1.jpg"
+      "./screens/assets/image/no_pic.jpg"
     ],
     "specifications": {
       "尺寸": "1.5米/1.8米床",

@@ -62,7 +62,8 @@ class CartItem:
     """购物车项"""
     product_id: str
     product_name: str
-    price: float
+    price: float  # 成本价
+    suggest: float  # 零售价（建议零售价）
     quantity: int
     image: str = ""
     specifications: Dict = field(default_factory=dict)
@@ -70,7 +71,7 @@ class CartItem:
 
     @property
     def subtotal(self):
-        unit_price = self.discount_price if self.discount_price is not None else self.price
+        unit_price = self.discount_price if self.discount_price is not None else self.suggest
         return unit_price * self.quantity
 
 
@@ -98,6 +99,7 @@ class ShoppingCart:
                 product_id=product.id,
                 product_name=product.name,
                 price=product.price,
+                suggest=product.suggest,
                 quantity=quantity,
                 image=image_path,
                 specifications=specifications or {}
@@ -144,8 +146,8 @@ class ShoppingCart:
         """商品折扣优惠总额"""
         total = 0
         for item in self.items.values():
-            if item.discount_price is not None and item.discount_price < item.price:
-                total += (item.price - item.discount_price) * item.quantity
+            if item.discount_price is not None and item.discount_price < item.suggest:
+                total += (item.suggest - item.discount_price) * item.quantity
         return total
 
     @property

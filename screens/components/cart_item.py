@@ -18,7 +18,8 @@ class CartItemWidget(MDBoxLayout):
     """购物车项组件"""
     product_id = StringProperty()
     name = StringProperty()
-    price = NumericProperty()
+    price = NumericProperty()  # 零售价（建议零售价）
+    cost_price = NumericProperty()  # 成本价
     quantity = NumericProperty()
     image_url = StringProperty()
     discount_price = NumericProperty(None, allownone=True)
@@ -249,17 +250,27 @@ class CartItemWidget(MDBoxLayout):
         self.update_subtotal_display()
 
     def set_discount_price(self, *args):
-        """设置折扣价"""
+        """设置折扣价：必须低于零售价，且高于成本价的30%"""
         text = self.discount_field.text.strip()
         if not text:
             self.discount_price = None
         else:
             try:
                 val = float(text)
+                min_price = self.cost_price * 0.3
                 if val <= 0 or val > self.price:
                     MDSnackbar(
                         MDLabel(
                             text=f"折扣价必须大于0且不超过 ¥{self.price:.1f}",
+                            theme_text_color="Custom",
+                            text_color=(0.9, 0.2, 0.2, 1)
+                        )
+                    ).open()
+                    return
+                if val < min_price:
+                    MDSnackbar(
+                        MDLabel(
+                            text=f"折扣价不能低于成本价的30% (¥{min_price:.1f})",
                             theme_text_color="Custom",
                             text_color=(0.9, 0.2, 0.2, 1)
                         )

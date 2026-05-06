@@ -49,6 +49,39 @@ class ShoppingCartApp(MDApp):
         self.current_user = None
         # 蓝牙打印机管理器
         self.bluetooth_printer_manager = BluetoothPrinterManager()
+        # 应用版本号（从 buildozer.spec 读取）
+        self.app_version = self._load_app_version()
+
+    def _load_app_version(self):
+        """读取应用版本号：PC端从 buildozer.spec 读取，Android端从 PackageManager 读取"""
+        import re
+        from kivy.utils import platform
+
+        # PC 端：直接读取 buildozer.spec
+        try:
+            spec_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'buildozer.spec')
+            with open(spec_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    m = re.match(r'^version\s*=\s*(\S+)', line.strip())
+                    if m:
+                        return m.group(1)
+        except Exception:
+            pass
+
+        # Android 端：通过 PackageManager 读取 versionName（buildozer.spec 中的 version）
+        if platform == 'android':
+            try:
+                from jnius import autoclass
+                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                activity = PythonActivity.mActivity
+                pm = activity.getPackageManager()
+                pn = activity.getPackageName()
+                pi = pm.getPackageInfo(pn, 0)
+                return str(pi.versionName)
+            except Exception:
+                pass
+
+        return "1.0.0"
 
     def build(self):
         """构建应用"""

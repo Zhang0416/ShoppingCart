@@ -11,12 +11,13 @@
         "quantity": 1,
         "image": "./assets/image/demo/macbookairm2.png",
         "specifications": {},
-        "discount_price": 8499.0
+        "discount_price": 8999.0,
+        "suggest": 8999.0
       }
     ],
-    "subtotal": 8499.0,
-    "discount": 0,
-    "total": 8499.0,
+    "subtotal": 8999.0,
+    "discount": 0.0,
+    "total": 8999.0,
     "address": "cucc~15266547789~天津市南开区和平中路",
     "payment_method": "wechat",
     "status": "pending",
@@ -31,33 +32,36 @@
       {
         "product_id": "p001",
         "product_name": "iPhone 15 Pro",
-        "price": 8999.0,
+        "price": 8099.1,
         "quantity": 1,
         "image": "./assets/image/demo/iphone15pro.jpeg",
         "specifications": {},
-        "discount_price": 8999.0
+        "discount_price": 8999.0,
+        "suggest": 8999.0
       },
       {
         "product_id": "p006",
         "product_name": "智能手表",
-        "price": 1299.0,
+        "price": 1169.1,
         "quantity": 2,
         "image": "https://via.placeholder.com/300x300/1abc9c/ffffff?text=手表",
         "specifications": {},
-        "discount_price": 1299.0
+        "discount_price": 1299.0,
+        "suggest": 1299.0
       },
       {
         "product_id": "p005",
         "product_name": "巧克力礼盒",
-        "price": 199.0,
+        "price": 179.1,
         "quantity": 2,
         "image": "https://via.placeholder.com/300x300/f39c12/ffffff?text=巧克力",
         "specifications": {},
-        "discount_price": 199.0
+        "discount_price": 199.0,
+        "suggest": 199.0
       }
     ],
     "subtotal": 11995.0,
-    "discount": 0,
+    "discount": 0.0,
     "total": 11995.0,
     "address": "ddd~13865321245~北京市石景山区环湖中路",
     "payment_method": "cash",
@@ -77,30 +81,33 @@
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 89.0
+        "discount_price": 99.0,
+        "suggest": 99.0
       },
       {
         "product_id": "p005",
         "product_name": "巧克力礼盒",
-        "price": 199.0,
+        "price": 179.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
         "specifications": {},
-        "discount_price": 199.0
+        "discount_price": 199.0,
+        "suggest": 199.0
       },
       {
         "product_id": "p007",
         "product_name": "运动鞋",
-        "price": 399.0,
+        "price": 359.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 399.0
+        "discount_price": 399.0,
+        "suggest": 399.0
       }
     ],
-    "subtotal": 687.0,
-    "discount": 0,
-    "total": 687.0,
+    "subtotal": 697.0,
+    "discount": 0.0,
+    "total": 697.0,
     "address": "kkk~13989076548~河北省沧州市黄骅市齐家务镇",
     "payment_method": "cash",
     "status": "delivered",
@@ -115,16 +122,17 @@
       {
         "product_id": "p001",
         "product_name": "iPhone 15 Pro",
-        "price": 8999.0,
+        "price": 8099.1,
         "quantity": 1,
         "image": "./screens/assets/image/demo/iphone15pro.JPEG",
         "specifications": {},
-        "discount_price": 8999.0
+        "discount_price": 8999.0,
+        "suggest": 8999.0
       }
     ],
     "subtotal": 8999.0,
-    "discount": 300.0,
-    "total": 8699.0,
+    "discount": 0.0,
+    "total": 8999.0,
     "address": "cucc~15266547789~天津市南开区和平中路",
     "payment_method": "cash",
     "status": "delivered",
@@ -143,21 +151,23 @@
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 89.0
+        "discount_price": 99.0,
+        "suggest": 99.0
       },
       {
         "product_id": "p005",
         "product_name": "巧克力礼盒",
-        "price": 199.0,
+        "price": 179.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
         "specifications": {},
-        "discount_price": 199.0
+        "discount_price": 199.0,
+        "suggest": 199.0
       }
     ],
-    "subtotal": 288.0,
-    "discount": 80.0,
-    "total": 208.0,
+    "subtotal": 298.0,
+    "discount": 0.0,
+    "total": 298.0,
     "address": "cucc~15266547789~天津市南开区和平中路",
     "payment_method": "cash",
     "status": "delivered",
@@ -176,12 +186,13 @@
         "quantity": 1,
         "image": "./screens/assets/image/demo/macbookairm2.png",
         "specifications": {},
-        "discount_price": 8499.0
+        "discount_price": 8999.0,
+        "suggest": 8999.0
       }
     ],
-    "subtotal": 8499.0,
-    "discount": 400.0,
-    "total": 8099.0,
+    "subtotal": 8999.0,
+    "discount": 0.0,
+    "total": 8999.0,
     "address": "ddd~13865321245~北京市石景山区环湖中路",
     "payment_method": "cash",
     "status": "delivered",
@@ -196,11 +207,12 @@
       {
         "product_id": "p003",
         "product_name": "男士休闲衬衫",
-        "price": 299.0,
+        "price": 269.1,
         "quantity": 1,
         "image": "./screens/assets/image/demo/tshirtman.JPEG",
         "specifications": {},
-        "discount_price": 299.0
+        "discount_price": 299.0,
+        "suggest": 299.0
       },
       {
         "product_id": "p004",
@@ -209,48 +221,53 @@
         "quantity": 3,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 89.0
+        "discount_price": 99.0,
+        "suggest": 99.0
       },
       {
         "product_id": "p006",
         "product_name": "智能手表",
-        "price": 1299.0,
+        "price": 1169.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
         "specifications": {},
-        "discount_price": 1299.0
+        "discount_price": 1299.0,
+        "suggest": 1299.0
       },
       {
         "product_id": "p005",
         "product_name": "巧克力礼盒",
-        "price": 199.0,
+        "price": 179.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
         "specifications": {},
-        "discount_price": 199.0
+        "discount_price": 199.0,
+        "suggest": 199.0
       },
       {
         "product_id": "p007",
         "product_name": "运动鞋",
-        "price": 399.0,
+        "price": 359.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 399.0
+        "discount_price": 399.0,
+        "suggest": 399.0
       },
       {
         "product_id": "p008",
         "product_name": "无线耳机",
-        "price": 599.0,
+        "price": 539.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 599.0
+        "discount_price": 599.0,
+        "suggest": 599.0
       }
     ],
-    "subtotal": 3062.0,
-    "discount": 62.0,
-    "total": 3000.0,
+    "subtotal": 3092.0,
+    "discount": 0.0,
+    "total": 3092.0,
     "address": "cucc~15266547789~天津市南开区和平中路",
     "payment_method": "cash",
     "status": "delivered",
@@ -269,21 +286,23 @@
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 89.0
+        "discount_price": 99.0,
+        "suggest": 99.0
       },
       {
         "product_id": "p005",
         "product_name": "巧克力礼盒",
-        "price": 199.0,
+        "price": 179.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
         "specifications": {},
-        "discount_price": 199.0
+        "discount_price": 199.0,
+        "suggest": 199.0
       }
     ],
-    "subtotal": 288.0,
-    "discount": 8.0,
-    "total": 280.0,
+    "subtotal": 298.0,
+    "discount": 0.0,
+    "total": 298.0,
     "address": "uuu~15955634587~天津市蓟州区开发区xx路",
     "payment_method": "cash",
     "status": "delivered",
@@ -298,16 +317,17 @@
       {
         "product_id": "p007",
         "product_name": "运动鞋",
-        "price": 399.0,
+        "price": 359.1,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 399.0
+        "discount_price": 399.0,
+        "suggest": 399.0
       }
     ],
     "subtotal": 399.0,
-    "discount": 19.0,
-    "total": 380.0,
+    "discount": 0.0,
+    "total": 399.0,
     "address": "kkk~13989076548~河北省沧州市黄骅市齐家务镇",
     "payment_method": "cash",
     "status": "delivered",
@@ -322,15 +342,16 @@
       {
         "product_id": "p003",
         "product_name": "男士休闲衬衫",
-        "price": 299.0,
+        "price": 269.1,
         "quantity": 1,
         "image": "./screens/assets/image/demo/tshirtman.JPEG",
         "specifications": {},
-        "discount_price": 299.0
+        "discount_price": 299.0,
+        "suggest": 299.0
       }
     ],
     "subtotal": 299.0,
-    "discount": 0,
+    "discount": 0.0,
     "total": 299.0,
     "address": "cucc~15266547789~天津市南开区和平中路",
     "payment_method": "cash",
@@ -350,12 +371,13 @@
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
         "specifications": {},
-        "discount_price": 80.0
+        "discount_price": 80.0,
+        "suggest": 99.0
       }
     ],
-    "subtotal": 80.0,
-    "discount": 19,
-    "total": 89.0,
+    "subtotal": 99.0,
+    "discount": 19.0,
+    "total": 80.0,
     "address": "ddd~13865321245~北京市石景山区环湖中路",
     "payment_method": "cash",
     "status": "delivered",
@@ -370,34 +392,37 @@
       {
         "product_id": "p003",
         "product_name": "男士休闲衬衫",
-        "price": 299.0,
+        "price": 269.1,
         "discount_price": 299.0,
         "quantity": 1,
         "image": "./screens/assets/image/demo/tshirtman.JPEG",
-        "specifications": {}
+        "specifications": {},
+        "suggest": 299.0
       },
       {
         "product_id": "p008",
         "product_name": "无线耳机",
-        "price": 599.0,
+        "price": 539.1,
         "discount_price": 500.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "suggest": 599.0
       },
       {
         "product_id": "p011",
         "product_name": "纯棉T恤",
         "price": 89.0,
-        "discount_price": 89.0,
+        "discount_price": 129.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "suggest": 129.0
       }
     ],
-    "subtotal": 987.0,
+    "subtotal": 1027.0,
     "discount": 99.0,
-    "total": 888.0,
+    "total": 928.0,
     "address": "ddd~13865321245~北京市石景山区环湖中路",
     "payment_method": "cash",
     "status": "delivered",
@@ -416,29 +441,32 @@
         "discount_price": 160.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "specifications": {},
+        "suggest": 259.0
       },
       {
         "product_id": "p005",
         "product_name": "巧克力礼盒",
-        "price": 199.0,
+        "price": 179.1,
         "discount_price": 110.0,
         "quantity": 1,
         "image": "./screens/assets/image/no_pic1.jpg",
-        "specifications": {}
+        "specifications": {},
+        "suggest": 199.0
       },
       {
         "product_id": "p003",
         "product_name": "男士休闲衬衫",
-        "price": 299.0,
+        "price": 269.1,
         "discount_price": 280.0,
         "quantity": 1,
         "image": "./screens/assets/image/demo/tshirtman.JPEG",
-        "specifications": {}
+        "specifications": {},
+        "suggest": 299.0
       }
     ],
-    "subtotal": 697.0,
-    "discount": 147.0,
+    "subtotal": 757.0,
+    "discount": 207.0,
     "total": 550.0,
     "address": "ddd~13865321245~北京市石景山区环湖中路",
     "payment_method": "cash",
@@ -454,47 +482,86 @@
       {
         "product_id": "p003",
         "product_name": "男士休闲衬衫",
-        "price": 299.0,
+        "price": 269.1,
         "discount_price": 280.0,
         "quantity": 1,
-        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/demo/tshirtman.JPEG",
-        "specifications": {}
+        "image": "./screens/assets/image/demo/tshirtman.JPEG",
+        "specifications": {},
+        "suggest": 299.0
       },
       {
         "product_id": "p008",
         "product_name": "无线耳机",
-        "price": 599.0,
+        "price": 539.1,
         "discount_price": 500.0,
         "quantity": 1,
-        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "image": "./screens/assets/image/no_pic.jpg",
+        "specifications": {},
+        "suggest": 599.0
       },
       {
         "product_id": "p010",
         "product_name": "华为FreeBuds Pro 4",
         "price": 1499.0,
-        "discount_price": 1499.0,
+        "discount_price": 1699.0,
         "quantity": 1,
-        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/no_pic.jpg",
-        "specifications": {}
+        "image": "./screens/assets/image/no_pic.jpg",
+        "specifications": {},
+        "suggest": 1699.0
       },
       {
         "product_id": "p009",
         "product_name": "联想小新Pad Pro 2025",
         "price": 2299.0,
-        "discount_price": 2299.0,
+        "discount_price": 2599.0,
         "quantity": 1,
-        "image": "D:\\zqx\\code\\GitHub\\ShoppingCart\\screens/assets/image/no_pic1.jpg",
-        "specifications": {}
+        "image": "./screens/assets/image/no_pic1.jpg",
+        "specifications": {},
+        "suggest": 2599.0
       }
     ],
-    "subtotal": 4696.0,
+    "subtotal": 5196.0,
     "discount": 118.0,
-    "total": 4578.0,
+    "total": 5078.0,
     "address": "ddd~13865321245~北京市石景山区环湖中路",
     "payment_method": "cash",
     "status": "delivered",
     "created_at": "2026-04-27 19:14:47",
+    "updated_at": ""
+  },
+  {
+    "order_id": "3ad91cf4630aff1ca231d0328658dd8b7c184b4b",
+    "user_name": "demo",
+    "user_phone": "13800138000",
+    "items": [
+      {
+        "product_id": "p003",
+        "product_name": "男士休闲衬衫",
+        "price": 269.1,
+        "suggest": 299.0,
+        "discount_price": 299.0,
+        "quantity": 1,
+        "image": "./screens/assets/image/demo/tshirtman.JPEG",
+        "specifications": {}
+      },
+      {
+        "product_id": "p004",
+        "product_name": "Java编程思想",
+        "price": 89.0,
+        "suggest": 99.0,
+        "discount_price": 99.0,
+        "quantity": 1,
+        "image": "./screens/assets/image/no_pic.jpg",
+        "specifications": {}
+      }
+    ],
+    "subtotal": 398.0,
+    "discount": 0.0,
+    "total": 398.0,
+    "address": "ddd~13865321245~北京市石景山区环湖中路",
+    "payment_method": "cash",
+    "status": "delivered",
+    "created_at": "2026-05-04 16:13:21",
     "updated_at": ""
   }
 ]

@@ -240,7 +240,7 @@ class CheckoutScreen(Screen):
             self.receiver_phone_label.text = "电话：--"
             self.receiver_address_label.text = "地址：--"
 
-        original_subtotal = sum(item.price * item.quantity for item in app.cart.items.values())
+        original_subtotal = sum(item.suggest * item.quantity for item in app.cart.items.values())
         item_discount = app.cart.item_discount
         final_total = original_subtotal - item_discount
 
@@ -271,7 +271,7 @@ class CheckoutScreen(Screen):
             height=dp(20),
             spacing=dp(2)
         )
-        headers = [("名称", 0.4), ("数量", 0.15), ("原价", 0.225), ("折扣价", 0.225)]
+        headers = [("名称", 0.35), ("数量", 0.15), ("零售价", 0.25), ("折扣价", 0.25)]
         for text, ratio in headers:
             lbl = MDLabel(
                 text=text,
@@ -286,8 +286,8 @@ class CheckoutScreen(Screen):
 
         # 数据行
         for item in app.cart.items.values():
-            original_ss = float(item.price) * item.quantity
-            discount_price = item.discount_price if item.discount_price is not None else item.price
+            original_ss = float(item.suggest) * item.quantity
+            discount_price = item.discount_price if item.discount_price is not None else item.suggest
             discount_ss = float(discount_price) * item.quantity
 
             row = MDBoxLayout(
@@ -301,7 +301,7 @@ class CheckoutScreen(Screen):
                 text=f"• {item.product_name}",
                 theme_text_color="Secondary",
                 font_style="Caption",
-                size_hint=(0.4, None),
+                size_hint=(0.35, None),
                 valign="center",
                 height=dp(20)
             )
@@ -325,7 +325,7 @@ class CheckoutScreen(Screen):
                 text=f"¥{original_ss:.1f}",
                 theme_text_color="Secondary",
                 font_style="Caption",
-                size_hint=(0.225, 1),
+                size_hint=(0.25, 1),
                 halign="right",
                 valign="center"
             )
@@ -333,7 +333,7 @@ class CheckoutScreen(Screen):
                 text=f"¥{discount_ss:.1f}",
                 theme_text_color="Secondary",
                 font_style="Caption",
-                size_hint=(0.225, 1),
+                size_hint=(0.25, 1),
                 halign="right",
                 valign="center"
             )
@@ -363,7 +363,7 @@ class CheckoutScreen(Screen):
                 return
 
         # 创建订单数据
-        original_subtotal = sum(item.price * item.quantity for item in app.cart.items.values())
+        original_subtotal = sum(item.suggest * item.quantity for item in app.cart.items.values())
         item_discount = app.cart.item_discount
         final_total = original_subtotal - item_discount
 
@@ -383,8 +383,9 @@ class CheckoutScreen(Screen):
             item_dict = {
                 'product_id': item.product_id,
                 'product_name': item.product_name,
-                'price': float(item.price),
-                'discount_price': float(item.discount_price) if item.discount_price is not None else float(item.price),
+                'price': float(item.price),  # 成本价
+                'suggest': float(item.suggest),  # 零售价
+                'discount_price': float(item.discount_price) if item.discount_price is not None else float(item.suggest),
                 'quantity': item.quantity,
                 'image': item.image,
                 'specifications': item.specifications

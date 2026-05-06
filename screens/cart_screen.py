@@ -187,7 +187,8 @@ class CartScreen(Screen):
             widget = CartItemWidget(
                 product_id=item.product_id,
                 name=item.product_name,
-                price=item.price,
+                price=item.suggest,
+                cost_price=item.price,
                 quantity=item.quantity,
                 image_url=item.image,
                 discount_price=item.discount_price
@@ -395,11 +396,12 @@ class CartScreen(Screen):
             height=dp(20)
         ))
 
-        # 商品表格（4列：名称、数量、原价、折扣价）
-        table_items = [["\n      名称", "\n 数量", "\n    原价", "\n   折扣价"]]
+        # 商品表格（4列：名称、数量、零售价、折扣价）
+        table_items = [["\n      名称", "\n 数量", "\n  零售价", "\n   折扣价"]]
         for item in order.items:
-            original_ss = float(item['price']) * item['quantity']
-            discount_price = item.get('discount_price', item['price'])
+            retail_price = float(item.get('suggest', item['price']))
+            original_ss = retail_price * item['quantity']
+            discount_price = item.get('discount_price', retail_price)
             discount_ss = float(discount_price) * item['quantity']
             table_items.append([
                 f"• {item['product_name']}",
@@ -415,7 +417,7 @@ class CartScreen(Screen):
             padding=dp(10),
             spacing=dp(0)
         )
-        size_x_arr = [0.4, 0.15, 0.225, 0.225]
+        size_x_arr = [0.35, 0.15, 0.25, 0.25]
         for i, cols in enumerate(list(zip(*table_items))):
             table_layout.add_widget(MDLabel(
                 text="\n".join(cols),

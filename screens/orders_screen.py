@@ -82,9 +82,9 @@ class OrdersScreen(Screen):
             IconLeftWidget(icon="history", theme_text_color="Custom", text_color=(1, 0.5, 0, 1))
         )
 
-        # 统计，按照年份、季度或月份统计
+        # 利润统计，按照年份统计
         statis_orders_item = OneLineIconListItem(
-            text="统计订单",
+            text="利润统计",
             on_release=self.show_statis_select_year
         )
         statis_orders_item.add_widget(
@@ -394,7 +394,7 @@ class OrdersScreen(Screen):
 
         # 创建对话框
         self.statis_select_year_dialog = MDDialog(
-            title="统计订单",
+            title="利润统计",
             type="custom",
             size_hint_x=0.9,
             background_color=(0, 0, 0, 0),
@@ -473,6 +473,25 @@ class OrdersScreen(Screen):
         if self.year_menu_for_statis:
             self.year_menu_for_statis.dismiss()
 
+    def _calc_order_profit(self, order):
+        """计算订单利润：订单金额 - 成本金额"""
+        app = App.get_running_app()
+        cost = 0.0
+        for item in order.items:
+            qty = int(item.get('quantity', 0))
+            if 'suggest' in item:
+                # 有 suggest 的订单：price 是成本价，suggest 是零售价
+                unit_cost = float(item.get('price', 0))
+            else:
+                # 未转换的旧订单：尝试从产品库查找当前成本价
+                product = app.db.get_product(item.get('product_id', ''))
+                if product:
+                    unit_cost = product.price
+                else:
+                    unit_cost = float(item.get('price', 0))
+            cost += unit_cost * qty
+        return order.total - cost
+
     def show_statis_orders(self, *args):
 
         """获取所有订单"""
@@ -484,20 +503,25 @@ class OrdersScreen(Screen):
 
         all_orders = app.order_manager.get_all_orders()
         sorted_orders = sorted(all_orders, key=lambda x: x.created_at, reverse=True)
-        monthly_stats = {month: {"count": 0, "amount": 0.0, "id_list": []} for month in range(1, 13)}
+        monthly_stats = {month: {"count": 0, "amount": 0.0, "profit": 0.0, "id_list": []} for month in range(1, 13)}
         for order in sorted_orders:
-            time_format = datetime.fromisoformat(order.created_at)  # .strftime("%m-%d %H:%M")
+            time_format = datetime.fromisoformat(order.created_at)
 
             # 检查年份
             if str(time_format.year) == self.select_year_label.text:
                 # 更新统计
                 monthly_stats[time_format.month]["count"] += 1
                 monthly_stats[time_format.month]["amount"] += order.total
+                monthly_stats[time_format.month]["profit"] += self._calc_order_profit(order)
                 monthly_stats[time_format.month]["id_list"].append(order.order_id)
+
+        year_profit = sum(m["profit"] for m in monthly_stats.values())
+        year_amount = sum(m["amount"] for m in monthly_stats.values())
+        year_count = sum(m["count"] for m in monthly_stats.values())
 
         # 创建对话框
         self.statis_orders_dialog = MDDialog(
-            title="统计订单",
+            title=f"{self.select_year_label.text}年利润统计",
             type="custom",
             size_hint_x=0.9,
             background_color=(0, 0, 0, 0),
@@ -514,6 +538,37 @@ class OrdersScreen(Screen):
                 ),
             ]
         )
+        self.statis_orders_dialog.ids.title.font_name = CHINESE_FONT_NAME
+
+        # 年度汇总信息（三行居中：订单数、销售额、利润）
+        summary_card = MDCard(
+            orientation='vertical',
+            size_hint=(1, None),
+            height=dp(95),
+            padding=dp(8),
+            spacing=dp(2),
+            elevation=dp(2),
+            radius=[dp(10)]
+        )
+        summary_card.add_widget(MDLabel(
+            text=f"年度订单数: {year_count}",
+            theme_text_color="Primary",
+            font_style="Subtitle2",
+            halign="center"
+        ))
+        summary_card.add_widget(MDLabel(
+            text=f"年度销售额: ¥{year_amount:.1f}",
+            theme_text_color="Primary",
+            font_style="Subtitle2",
+            halign="center"
+        ))
+        summary_card.add_widget(MDLabel(
+            text=f"年度总利润: ¥{year_profit:.1f}",
+            theme_text_color="Error",
+            font_style="Subtitle2",
+            halign="center"
+        ))
+        self.statis_orders_dialog.content_cls.add_widget(summary_card)
 
         scroll_view = MDScrollView()
         month_list = MDList()
@@ -522,8 +577,8 @@ class OrdersScreen(Screen):
                 continue
             item = ThreeLineListItem(
                 text=f"{month}月",
-                secondary_text=f"订单数：{monthly_stats[month]['count']:>4}",
-                tertiary_text=f"订单金额：{monthly_stats[month]['amount']:.1f}",
+                secondary_text=f"订单数：{monthly_stats[month]['count']:>4}   销售额：¥{monthly_stats[month]['amount']:.1f}",
+                tertiary_text=f"利润：¥{monthly_stats[month]['profit']:.1f}",
                 font_style='Subtitle2',
                 secondary_font_style='Subtitle2',
                 tertiary_font_style='Subtitle2'
@@ -542,9 +597,12 @@ class OrdersScreen(Screen):
         all_orders = app.order_manager.get_all_orders()
         month_orders = [o for o in all_orders if o.order_id in id_list]
 
+        month_profit = sum(self._calc_order_profit(o) for o in month_orders)
+        month_amount = sum(o.total for o in month_orders)
+
         # 创建对话框
         month_orders_dialog = MDDialog(
-            title=f"{month}月订单明细",
+            title=f"{month}月订单明细(利润¥{month_profit:.1f})",
             type="custom",
             size_hint_x=0.9,
             background_color=(0, 0, 0, 0),
@@ -567,15 +625,16 @@ class OrdersScreen(Screen):
         recent_list = MDList()
         for order in month_orders[::-1]:  # 倒序，日期较大的排在前面
             time_str = datetime.fromisoformat(order.created_at).strftime("%m-%d %H:%M")
+            profit = self._calc_order_profit(order)
             item = ThreeLineListItem(
                 text=f"订单号：{order.order_id[:20]}",
-                secondary_text=f"收货人：{order.address}",  # | {self.get_status_text(order.status)}"
-                tertiary_text=f"金额：¥{order.total:.1f} | 时间：{time_str}",
+                secondary_text=f"收货人：{order.address}",
+                tertiary_text=f"金额：¥{order.total:.1f} | 利润：¥{profit:.1f} | 时间：{time_str}",
                 font_style='Caption',
                 secondary_font_style='Overline',
                 tertiary_font_style='Overline'
             )
-            item.bind(on_release=lambda x, o=order: self.show_order_detail(o, has_delete=False))
+            item.bind(on_release=lambda x, o=order: self.show_order_detail(o, has_delete=False, show_cost=True))
             recent_list.add_widget(item)
 
         scroll_view.add_widget(recent_list)
@@ -634,8 +693,12 @@ class OrdersScreen(Screen):
         self.all_orders_detail_dailog.content_cls.add_widget(scroll_view)
         self.all_orders_detail_dailog.open()
 
-    def show_order_detail(self, order, has_delete=True, prev_dialog="my"):
-        """显示订单详情（自适应宽度 Dialog）"""
+    def show_order_detail(self, order, has_delete=True, prev_dialog="my", show_cost=False):
+        """显示订单详情（自适应宽度 Dialog）
+        
+        Args:
+            show_cost: 为 True 时显示成本价列，且只保留打印/关闭按钮（用于利润统计入口）
+        """
 
         content = MDBoxLayout(
             orientation='vertical',
@@ -698,7 +761,25 @@ class OrdersScreen(Screen):
         recent_list.add_widget(items_label)
 
         counts = 0
-        size_x_arr = [0.4, 0.15, 0.225, 0.225]
+        if show_cost:
+            # 利润统计入口：4列，成本/零售列尽可能宽，折扣价一组数值0.25够用
+            size_x_arr = [0.30, 0.15, 0.4, 0.25]
+            col_headers = ["名称", "数量", "成本/零售", "折扣价"]
+            col_haligns = ["left", "center", "right", "right"]
+            name_col_w = 0.30
+            qty_col_w = 0.12
+            price_col_w = 0.4
+            disc_col_w = 0.18
+            row_min_h = dp(20)
+        else:
+            size_x_arr = [0.35, 0.15, 0.25, 0.25]
+            col_headers = ["名称", "数量", "零售价", "折扣价"]
+            col_haligns = ["left", "center", "right", "right"]
+            name_col_w = 0.35
+            qty_col_w = 0.15
+            price_col_w = 0.25
+            disc_col_w = 0.25
+            row_min_h = dp(20)
 
         # 表头
         header_row = MDBoxLayout(
@@ -707,38 +788,62 @@ class OrdersScreen(Screen):
             height=dp(22),
             padding=(dp(5), 0)
         )
-        headers = ["名称", "数量", "原价", "折扣价"]
-        haligns = ["left", "center", "right", "right"]
-        for i, h in enumerate(headers):
-            header_row.add_widget(MDLabel(
-                text=h,
-                theme_text_color="Secondary",
-                size_hint=(size_x_arr[i], 1),
-                font_style="Caption",
-                halign=haligns[i],
-                bold=True,
-            ))
+        for i, h in enumerate(col_headers):
+            if show_cost and i == 2:
+                # "成本/零售" 列拆分为三部分，让 "/" 与数据行对齐
+                price_header_box = MDBoxLayout(
+                    orientation='horizontal',
+                    size_hint=(size_x_arr[i], 1),
+                )
+                price_header_box.add_widget(MDLabel(
+                    text="成本", theme_text_color="Secondary",
+                    size_hint=(0.46, 1), font_style="Caption",
+                    halign="right", bold=True,
+                ))
+                price_header_box.add_widget(MDLabel(
+                    text="/", theme_text_color="Secondary",
+                    size_hint=(0.08, 1), font_style="Caption",
+                    halign="center", bold=True,
+                ))
+                price_header_box.add_widget(MDLabel(
+                    text="零售", theme_text_color="Secondary",
+                    size_hint=(0.46, 1), font_style="Caption",
+                    halign="left", bold=True,
+                ))
+                header_row.add_widget(price_header_box)
+            else:
+                header_row.add_widget(MDLabel(
+                    text=h,
+                    theme_text_color="Secondary",
+                    size_hint=(size_x_arr[i], 1),
+                    font_style="Caption",
+                    halign=col_haligns[i],
+                    bold=True,
+                ))
         recent_list.add_widget(header_row)
 
         # 商品行
         for item in order.items:
             counts += item['quantity']
-            original_ss = float(item['price']) * item['quantity']
-            discount_price = item.get('discount_price', item['price'])
+            retail_price = float(item.get('suggest', item['price']))
+            cost_price = float(item.get('price', 0)) if 'suggest' in item else retail_price
+            original_ss = retail_price * item['quantity']
+            cost_ss = cost_price * item['quantity']
+            discount_price = item.get('discount_price', retail_price)
             discount_ss = float(discount_price) * item['quantity']
 
             row = MDBoxLayout(
                 orientation='horizontal',
                 size_hint=(1, None),
-                height=dp(20),
+                height=row_min_h,
                 padding=(dp(5), 0)
             )
 
             name_lbl = MDLabel(
                 text=f"• {item['product_name']}",
                 theme_text_color="Secondary",
-                size_hint=(0.4, None),
-                font_style="Caption",
+                size_hint=(name_col_w, None),
+                font_style="Overline",
                 valign="center",
             )
             name_lbl.bind(
@@ -749,38 +854,64 @@ class OrdersScreen(Screen):
             qty_lbl = MDLabel(
                 text=f"× {item['quantity']}",
                 theme_text_color="Secondary",
-                size_hint=(0.15, 1),
-                font_style="Caption",
+                size_hint=(qty_col_w, 1),
+                font_style="Overline",
                 halign="center",
                 valign="center",
             )
 
-            orig_lbl = MDLabel(
-                text=f"¥{original_ss:.1f}",
-                theme_text_color="Secondary",
-                size_hint=(0.225, 1),
-                font_style="Caption",
-                halign="right",
-                valign="center",
-            )
+            if show_cost:
+                # 成本/零售拆分为三部分，让 "/" 上下对齐，内部比例紧凑
+                price_box = MDBoxLayout(
+                    orientation='horizontal',
+                    size_hint=(price_col_w, 1),
+                )
+                price_box.add_widget(MDLabel(
+                    text=f"¥{cost_ss:.1f}",
+                    theme_text_color="Secondary",
+                    size_hint=(0.46, 1), font_style="Overline",
+                    halign="right", valign="center",
+                ))
+                price_box.add_widget(MDLabel(
+                    text="/",
+                    theme_text_color="Secondary",
+                    size_hint=(0.08, 1), font_style="Overline",
+                    halign="center", valign="center",
+                ))
+                price_box.add_widget(MDLabel(
+                    text=f"¥{original_ss:.1f}",
+                    theme_text_color="Secondary",
+                    size_hint=(0.46, 1), font_style="Overline",
+                    halign="left", valign="center",
+                ))
+                price_lbl = price_box
+            else:
+                price_lbl = MDLabel(
+                    text=f"¥{original_ss:.1f}",
+                    theme_text_color="Secondary",
+                    size_hint=(price_col_w, 1),
+                    font_style="Overline",
+                    halign="right",
+                    valign="center",
+                )
 
             disc_lbl = MDLabel(
                 text=f"¥{discount_ss:.1f}",
                 theme_text_color="Secondary",
-                size_hint=(0.225, 1),
-                font_style="Caption",
+                size_hint=(disc_col_w, 1),
+                font_style="Overline",
                 halign="right",
                 valign="center",
             )
 
             def on_name_height(inst, ts, row=row):
-                row.height = max(ts[1], dp(20))
+                row.height = max(ts[1], row_min_h)
 
             name_lbl.bind(texture_size=on_name_height)
 
             row.add_widget(name_lbl)
             row.add_widget(qty_lbl)
-            row.add_widget(orig_lbl)
+            row.add_widget(price_lbl)
             row.add_widget(disc_lbl)
             recent_list.add_widget(row)
 
@@ -828,39 +959,57 @@ class OrdersScreen(Screen):
             spacing=dp(2)
         )
 
-        btn_ratio = 0.25 if has_delete else 0.333
-
-        if has_delete:
-            delete_btn = MDRaisedButton(
-                text="删除",
+        if show_cost:
+            # 利润统计入口：只显示打印和关闭
+            btn_ratio = 0.5
+            print_btn = MDRaisedButton(
+                text="打印",
                 size_hint=(btn_ratio, 1),
-                md_bg_color=(0.9, 0.3, 0.3, 1),
-                on_release=lambda x, o=order: self.delete_my_order(o, prev=prev_dialog)
+                md_bg_color=(0.2, 0.6, 0.86, 1),
+                on_release=lambda x, o=order: self._print_order(o)
             )
-            button_box.add_widget(delete_btn)
+            close_btn = MDRaisedButton(
+                text="关闭",
+                size_hint=(btn_ratio, 1),
+                md_bg_color=(0.5, 0.5, 0.5, 1),
+                on_release=lambda x: self.order_detail_dialog.dismiss()
+            )
+            button_box.add_widget(print_btn)
+            button_box.add_widget(close_btn)
+        else:
+            btn_ratio = 0.25 if has_delete else 0.333
 
-        print_btn = MDRaisedButton(
-            text="打印",
-            size_hint=(btn_ratio, 1),
-            md_bg_color=(0.2, 0.6, 0.86, 1),
-            on_release=lambda x, o=order: self._print_order(o)
-        )
-        save_img_btn = MDRaisedButton(
-            text="保存",
-            size_hint=(btn_ratio, 1),
-            md_bg_color=(0.2, 0.7, 0.5, 1),
-            on_release=lambda x, o=order: self.save_order_image(o)
-        )
-        close_btn = MDRaisedButton(
-            text="关闭",
-            size_hint=(btn_ratio, 1),
-            md_bg_color=(0.5, 0.5, 0.5, 1),
-            on_release=lambda x: self.order_detail_dialog.dismiss()
-        )
+            if has_delete:
+                delete_btn = MDRaisedButton(
+                    text="删除",
+                    size_hint=(btn_ratio, 1),
+                    md_bg_color=(0.9, 0.3, 0.3, 1),
+                    on_release=lambda x, o=order: self.delete_my_order(o, prev=prev_dialog)
+                )
+                button_box.add_widget(delete_btn)
 
-        button_box.add_widget(print_btn)
-        button_box.add_widget(save_img_btn)
-        button_box.add_widget(close_btn)
+            print_btn = MDRaisedButton(
+                text="打印",
+                size_hint=(btn_ratio, 1),
+                md_bg_color=(0.2, 0.6, 0.86, 1),
+                on_release=lambda x, o=order: self._print_order(o)
+            )
+            save_img_btn = MDRaisedButton(
+                text="保存",
+                size_hint=(btn_ratio, 1),
+                md_bg_color=(0.2, 0.7, 0.5, 1),
+                on_release=lambda x, o=order: self.save_order_image(o)
+            )
+            close_btn = MDRaisedButton(
+                text="关闭",
+                size_hint=(btn_ratio, 1),
+                md_bg_color=(0.5, 0.5, 0.5, 1),
+                on_release=lambda x: self.order_detail_dialog.dismiss()
+            )
+
+            button_box.add_widget(print_btn)
+            button_box.add_widget(save_img_btn)
+            button_box.add_widget(close_btn)
 
         content.add_widget(button_box)
 
@@ -1068,10 +1217,10 @@ class OrdersScreen(Screen):
                 lines.append(current)
             return lines if lines else [text]
 
-        # 列宽定义（四列：名称 0.40, 数量 0.15, 原价 0.225, 折扣价 0.225）
-        name_col_w = int(INNER_WIDTH * 0.40)
+        # 列宽定义（四列：名称 0.35, 数量 0.15, 零售价 0.25, 折扣价 0.25）
+        name_col_w = int(INNER_WIDTH * 0.35)
         qty_col_w = int(INNER_WIDTH * 0.15)
-        orig_col_w = int(INNER_WIDTH * 0.225)
+        orig_col_w = int(INNER_WIDTH * 0.25)
         disc_col_w = INNER_WIDTH - name_col_w - qty_col_w - orig_col_w
 
         col_x = [
@@ -1120,15 +1269,16 @@ class OrdersScreen(Screen):
         draw_items.append(("section_title", section_text, y))
         y += 32
 
-        # 表头（四列：名称、数量、原价、折扣价）
-        draw_items.append(("table_header", ["名称", "数量", "原价", "折扣价"], y))
+        # 表头（四列：名称、数量、零售价、折扣价）
+        draw_items.append(("table_header", ["名称", "数量", "零售价", "折扣价"], y))
         y += 28
 
         counts = 0
         for item in order.items:
             counts += item['quantity']
-            original_ss = float(item['price']) * item['quantity']
-            discount_price = item.get('discount_price', item['price'])
+            retail_price = float(item.get('suggest', item['price']))
+            original_ss = retail_price * item['quantity']
+            discount_price = item.get('discount_price', retail_price)
             discount_ss = float(discount_price) * item['quantity']
 
             name_text = f"• {item['product_name']}"

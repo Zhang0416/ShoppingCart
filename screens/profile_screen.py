@@ -840,10 +840,12 @@ class ProfileScreen(Screen):
             ).open()
 
     def show_about(self, *args):
-        """显示关于信息"""
+        """显示关于信息（版本号动态从 buildozer.spec 读取）"""
+        app = App.get_running_app()
+        version = getattr(app, 'app_version', '1.0.0')
         dialog = MDDialog(
             title="关于购物商城",
-            text="购物商城 v1.0\n\n"
+            text=f"购物商城 v{version}\n\n"
                  "一个功能完整的移动购物应用\n"
                  "支持用户管理、商品浏览、购物车、订单管理等功能\n\n"
                  "开发者: ShoppingCart Team\n"

@@ -105,9 +105,9 @@ class ProductDetailDialog(ModalView):
             halign="left"
         )
 
-        # 价格
+        # 价格（显示建议零售价）
         price_label = MDLabel(
-            text=f"价格: ￥{self.product_data.price:.1f}",
+            text=f"价格: ￥{self.product_data.suggest:.1f}",
             font_style="Subtitle2",
             theme_text_color="Error",
             bold=True,

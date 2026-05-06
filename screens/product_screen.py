@@ -237,7 +237,7 @@ class ProductScreen(Screen):
                     product_id=product.id,
                     name=product.name,
                     description=product.description,
-                    price=product.price,
+                    price=product.suggest,
                     image_url=app.resolve_image_path(product.images[0]) if product.images else "",
                     rating=product.rating,
                     stock=product.stock

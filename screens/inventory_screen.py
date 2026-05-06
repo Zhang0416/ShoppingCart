@@ -864,7 +864,7 @@ class InventoryScreen(Screen):
 
         # 价格
         self.product_input['price'] = MDTextField(
-            hint_text="价格",
+            hint_text="成本价（入库价）",
             mode="rectangle",
             input_filter="float"
         )
@@ -872,7 +872,7 @@ class InventoryScreen(Screen):
         self.product_input['price'].font_name = CHINESE_FONT_NAME
 
         self.product_input['suggest'] = MDTextField(
-            hint_text="建议零售价格",
+            hint_text="零售价（出库价）",
             mode="rectangle",
             input_filter="float"
         )
@@ -1062,41 +1062,22 @@ class InventoryScreen(Screen):
             stock_val = int(stock)
 
             if price_val <= 0:
-                raise ValueError("价格必须大于0")
-            if suggest_val < price_val * 0.5:
-                raise ValueError("建议零售价过低")
+                raise ValueError("成本价必须大于0")
+            if suggest_val < price_val:
+                raise ValueError("零售价不能低于成本价")
             if stock_val < 0:
                 raise ValueError("库存不能为负数")
+            # 如果零售价等于成本价，自动调整成本价为零售价的90%
+            if suggest_val == price_val:
+                price_val = round(suggest_val * 0.9, 2)
         except ValueError as e:
             MDSnackbar(MDLabel(text=f"输入错误: {str(e)}", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
             return
 
-        # from kivy.app import App
-        # app = App.get_running_app()
-        #
-        # # 检查分类是否存在
-        # categories = app.inventory_manager.get_categories()
-        # category_exists = any(cat.name == category_name for cat in categories)
-        #
-        # if not category_exists:
-        #     MDSnackbar(MDLabel(text="请先创建该分类", text_color=(0.9, 0.2, 0.2, 1))).open()
-        #     return
-
-        # # 根据分类名称找到对应的枚举值
-        # category_enum = None
-        # for cat in ProductCategory:
-        #     if cat.value == category_name:
-        #         category_enum = cat
-        #         break
-        #
-        # if not category_enum:
-        #     # 如果没有找到对应的枚举，使用默认的电子产品分类
-        #     category_enum = ProductCategory.HOME
-
         product_data = {
             'name': name,
             'price': price_val,
-            'suggest': suggest,
+            'suggest': suggest_val,
             'stock': stock_val,
             'unit': unit,
             'category': category_name,
@@ -1515,12 +1496,12 @@ class InventoryScreen(Screen):
         self.product_edit_info['unit'].font_name = CHINESE_FONT_NAME
 
         # 价格
-        self.product_edit_info['price'] = MDTextField(hint_text="价格", text=str(product.price), mode="rectangle",
+        self.product_edit_info['price'] = MDTextField(hint_text="成本价（入库价）", text=str(product.price), mode="rectangle",
                                                       input_filter="float")
         self.product_edit_info['price'].font_name_hint_text = CHINESE_FONT_NAME
         self.product_edit_info['price'].font_name = CHINESE_FONT_NAME
 
-        self.product_edit_info['suggest'] = MDTextField(hint_text="建议零售价格", text=str(product.suggest),
+        self.product_edit_info['suggest'] = MDTextField(hint_text="零售价（出库价）", text=str(product.suggest),
                                                         mode="rectangle", input_filter="float")
         self.product_edit_info['suggest'].font_name_hint_text = CHINESE_FONT_NAME
         self.product_edit_info['suggest'].font_name = CHINESE_FONT_NAME
@@ -1549,9 +1530,12 @@ class InventoryScreen(Screen):
             suggest_val = float(product.suggest)
 
             if price_val <= 0:
-                raise ValueError("价格必须大于0")
+                raise ValueError("成本价必须大于0")
             if suggest_val < price_val:
-                raise ValueError("建议零售价过低")
+                raise ValueError("零售价不能低于成本价")
+            # 如果零售价等于成本价，自动调整成本价为零售价的90%
+            if suggest_val == price_val:
+                price_val = round(suggest_val * 0.9, 2)
 
         except ValueError as e:
             MDSnackbar(MDLabel(text=f"输入错误: {str(e)}", theme_text_color="Custom", text_color=(0.9, 0.2, 0.2, 1))).open()
