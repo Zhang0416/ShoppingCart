@@ -7,8 +7,10 @@ from kivymd.uix.button import MDRaisedButton, MDIconButton, MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.snackbar import MDSnackbar
+from kivymd.uix.textfield import MDTextField
 from kivy.metrics import dp
 from kivy.app import App
+from datetime import datetime, timedelta
 
 from .assets.config_chinese import CHINESE_FONT_NAME
 
@@ -17,6 +19,7 @@ class HomeScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "home"
+        self._otp_verified_at = 0  # 动态口令上次验证通过的时间戳
         self._build_ui()
 
     def _build_ui(self):
@@ -163,9 +166,82 @@ class HomeScreen(Screen):
         app.show_products()
 
     def show_orders(self, *args):
-        """库存管理"""
-        app = App.get_running_app()
-        app.show_orders()
+        """订单管理 - 动态口令验证（1分钟内免重复验证）"""
+        now = datetime.now().timestamp()
+        if now - self._otp_verified_at <= 60:
+            app = App.get_running_app()
+            app.show_orders()
+            return
+        self._show_otp_dialog("orders")
+
+    def _show_otp_dialog(self, target):
+        """显示动态口令验证对话框"""
+        self._otp_target = target
+        self.otp_input = MDTextField(
+            hint_text="请输入动态口令",
+            # helper_text="口令 = 当前小时 + 分钟",
+            mode="rectangle",
+            input_filter="int",
+        )
+        self.otp_input.font_name_hint_text = CHINESE_FONT_NAME
+        self.otp_input.font_name = CHINESE_FONT_NAME
+
+        self.otp_dialog = MDDialog(
+            title="动态口令验证",
+            type="custom",
+            size_hint_x=0.8,
+            content_cls=MDBoxLayout(
+                self.otp_input,
+                orientation="vertical",
+                size_hint_y=None,
+                height=dp(80),
+            ),
+            buttons=[
+                MDFlatButton(
+                    text="取消",
+                    font_name=CHINESE_FONT_NAME,
+                    on_release=lambda x: self.otp_dialog.dismiss(),
+                ),
+                MDRaisedButton(
+                    text="验证",
+                    font_name=CHINESE_FONT_NAME,
+                    on_release=self._verify_otp,
+                ),
+            ],
+        )
+        self.otp_dialog.ids.title.font_name = CHINESE_FONT_NAME
+        self.otp_dialog.open()
+
+    def _verify_otp(self, *args):
+        """验证动态口令"""
+        bj_now = datetime.now() # 计算北京时间口令：小时 + 分钟
+        # bj_now = utc_now + timedelta(hours=8)
+        correct_code = bj_now.hour + bj_now.minute
+
+        try:
+            user_code = int(self.otp_input.text.strip())
+        except (ValueError, AttributeError):
+            user_code = -1
+
+        self.otp_dialog.dismiss()
+
+        if user_code == correct_code:
+            self._otp_verified_at = datetime.now().timestamp()
+            app = App.get_running_app()
+            if self._otp_target == "orders":
+                app.show_orders()
+            else:
+                app.show_inventory()
+        else:
+            # correct_str = f"{bj_now.hour:02d}:{bj_now.minute:02d} = {correct_code}"
+            MDSnackbar(
+                MDLabel(
+                    text=f"口令错误，请检查口令是否正确",
+                    theme_text_color="Custom",
+                    text_color=(0.9, 0.2, 0.2, 1),
+                ),
+                duration=3,
+            ).open()
 
     def show_profile(self, *args):
         """个人中心"""
@@ -173,9 +249,13 @@ class HomeScreen(Screen):
         app.show_profile()
 
     def show_inventory(self, *args):
-        """显示我的订单"""
-        app = App.get_running_app()
-        app.show_inventory()
+        """库存管理 - 动态口令验证（1分钟内免重复验证）"""
+        now = datetime.now().timestamp()
+        if now - self._otp_verified_at <= 60:
+            app = App.get_running_app()
+            app.show_inventory()
+            return
+        self._show_otp_dialog("inventory")
 
     # def show_logout_dialog(self, *args):
     #     """显示退出登录对话框"""

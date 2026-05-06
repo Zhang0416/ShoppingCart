@@ -327,8 +327,6 @@ class InventoryManager:
 
     def add_product(self, product_data: Dict):
         """添加商品"""
-        import uuid
-        from datetime import datetime
 
         # 生成唯一ID
         product_id = f"p{str(uuid.uuid4())[:8]}"
@@ -449,8 +447,6 @@ class InventoryManager:
 
     def add_category(self, name: str, icon: str = "", description: str = ""):
         """添加分类"""
-        from datetime import datetime
-        import uuid
 
         category_id = f"cat{str(uuid.uuid4())[:8]}"
 
